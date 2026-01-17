@@ -1,11 +1,13 @@
+import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, UserPlus, ShoppingCart, Gift, BarChart2, Package, Settings, LogOut } from 'lucide-react';
+import { Home, UserPlus, ShoppingCart, Gift, BarChart2, Package, Settings, LogOut, Menu, X } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 const Layout = ({ children }) => {
     const location = useLocation();
     const { profile, logout } = useAuth();
     const isAdmin = profile?.role === 'admin';
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     const navItems = [
         { path: '/', label: 'Inicio', icon: Home, visible: true },
@@ -16,9 +18,40 @@ const Layout = ({ children }) => {
         { path: '/admin', label: 'Admin', icon: BarChart2, visible: isAdmin },
     ];
 
+    const toggleSidebar = () => {
+        setIsSidebarOpen(!isSidebarOpen);
+    };
+
+    const closeSidebar = () => {
+        setIsSidebarOpen(false);
+    };
+
     return (
         <div className="app-container">
-            <nav className="sidebar">
+            {/* Mobile Header with Hamburger */}
+            <div className="mobile-header">
+                <button
+                    className="hamburger-btn"
+                    onClick={toggleSidebar}
+                    aria-label="Toggle menu"
+                >
+                    {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
+                </button>
+                <h1 className="mobile-title">KIOSKO Club</h1>
+                <div className="mobile-header-spacer"></div>
+            </div>
+
+            {/* Overlay for mobile */}
+            {isSidebarOpen && (
+                <div
+                    className="sidebar-overlay"
+                    onClick={closeSidebar}
+                    aria-hidden="true"
+                ></div>
+            )}
+
+            {/* Sidebar */}
+            <nav className={`sidebar ${isSidebarOpen ? 'sidebar-open' : ''}`}>
                 {/* Logo Area */}
                 <div className="logo-area">
                     <div className="logo-icon">
@@ -38,6 +71,7 @@ const Layout = ({ children }) => {
                                 key={item.path}
                                 to={item.path}
                                 className={`nav-item ${isActive ? 'active' : ''}`}
+                                onClick={closeSidebar}
                             >
                                 <div className="nav-icon-col">
                                     <Icon size={30} />
@@ -53,7 +87,7 @@ const Layout = ({ children }) => {
                 {/* Footer with Settings and Logout */}
                 <div className="nav-footer">
                     {isAdmin && (
-                        <Link to="/admin" className="nav-item">
+                        <Link to="/admin" className="nav-item" onClick={closeSidebar}>
                             <div className="nav-icon-col">
                                 <Settings size={30} />
                             </div>
@@ -62,7 +96,13 @@ const Layout = ({ children }) => {
                             </div>
                         </Link>
                     )}
-                    <button onClick={logout} className="nav-item w-full bg-transparent border-none text-left cursor-pointer">
+                    <button
+                        onClick={() => {
+                            closeSidebar();
+                            logout();
+                        }}
+                        className="nav-item w-full bg-transparent border-none text-left cursor-pointer"
+                    >
                         <div className="nav-icon-col">
                             <LogOut size={30} />
                         </div>
