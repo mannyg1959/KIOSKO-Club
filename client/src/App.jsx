@@ -2,10 +2,13 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Layout from './components/Layout';
 import Home from './pages/Home';
 import RegisterClient from './pages/RegisterClient';
+import ClientsList from './pages/ClientsList';
 import SalesEntry from './pages/SalesEntry';
 import Loyalty from './pages/Loyalty';
 import AdminDashboard from './pages/AdminDashboard';
 import Products from './pages/Products';
+import ProductsList from './pages/ProductsList';
+import OffersManagement from './pages/OffersManagement';
 import Login from './pages/Login';
 import CompleteProfile from './pages/CompleteProfile';
 import { useAuth } from './contexts/AuthContext';
@@ -38,7 +41,10 @@ function App() {
                   {profile?.role === 'admin' && (
                     <>
                       <Route path="/register" element={<RegisterClient />} />
+                      <Route path="/clients" element={<ClientsList />} />
                       <Route path="/products" element={<Products />} />
+                      <Route path="/products-list" element={<ProductsList />} />
+                      <Route path="/offers" element={<OffersManagement />} />
                       <Route path="/sales" element={<SalesEntry />} />
                     </>
                   )}

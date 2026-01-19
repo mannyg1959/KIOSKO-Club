@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { QRCodeSVG } from 'qrcode.react';
 import { UserPlus, Save, Users, X, Edit2, Trash2, Check, XCircle } from 'lucide-react';
@@ -201,14 +202,13 @@ const RegisterClient = () => {
                     <h2 className="entry-title">Registrar Cliente</h2>
                     <p className="entry-subtitle">Añade nuevos clientes al sistema</p>
                 </div>
-                <button
-                    onClick={fetchClients}
+                <Link
+                    to="/clients"
                     className="btn btn-primary"
-                    disabled={loadingClients}
                 >
                     <Users size={18} />
-                    {loadingClients ? 'Cargando...' : 'Ver Clientes'}
-                </button>
+                    Ver Clientes
+                </Link>
             </div>
 
             <div className="entry-card" style={{ maxWidth: '600px' }}>
@@ -463,8 +463,8 @@ const RegisterClient = () => {
                                                             </td>
                                                             <td>
                                                                 <span className={`px-2 py-1 rounded-md text-xs font-bold border ${client.user_type === 'admin'
-                                                                        ? 'bg-purple-50 text-purple-700 border-purple-200'
-                                                                        : 'bg-green-50 text-green-700 border-green-200'
+                                                                    ? 'bg-purple-50 text-purple-700 border-purple-200'
+                                                                    : 'bg-green-50 text-green-700 border-green-200'
                                                                     }`}>
                                                                     {client.user_type === 'admin' ? 'ADMIN' : 'CLIENTE'}
                                                                 </span>

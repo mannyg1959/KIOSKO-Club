@@ -1,86 +1,358 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { UserPlus, ShoppingCart, Gift, BarChart2, Package, Sparkles } from 'lucide-react';
+import { Gift, Package, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabase';
+import '../styles/home.css';
 
 const Home = () => {
-    const { user, profile, logout } = useAuth();
-    const isAdmin = profile?.role === 'admin';
+    const { profile } = useAuth();
+    const [recentMovements, setRecentMovements] = useState([]);
+    const [totalMovements, setTotalMovements] = useState(0);
+    const [currentSlide, setCurrentSlide] = useState(0);
+    const [loading, setLoading] = useState(true);
+    const [offers, setOffers] = useState([]);
+    const [loadingOffers, setLoadingOffers] = useState(true);
 
-    const actions = [
-        {
-            path: '/register',
-            label: 'Registrar Cliente',
-            description: 'Añade nuevos clientes y genera códigos QR',
-            icon: UserPlus,
-            visible: isAdmin
-        },
-        {
-            path: '/products',
-            label: 'Gestionar Productos',
-            description: 'Administra tu inventario de productos',
-            icon: Package,
-            visible: isAdmin
-        },
-        {
-            path: '/sales',
-            label: 'Registrar Venta',
-            description: 'Procesa ventas y asigna puntos',
-            icon: ShoppingCart,
-            visible: isAdmin
-        },
-        {
-            path: '/admin',
-            label: 'Administración',
-            description: 'Revisa métricas y estadísticas',
-            icon: BarChart2,
-            visible: isAdmin
-        },
-    ].filter(a => a.visible);
+    // Datos del usuario
+    const userName = profile?.username || profile?.email?.split('@')[0] || 'Usuario';
+    const points = profile?.client?.points_balance || 0;
+
+    // Fetch últimos movimientos del cliente
+    useEffect(() => {
+        const fetchMovements = async () => {
+            if (!profile?.client?.id) {
+                setLoading(false);
+                return;
+            }
+
+            try {
+                // Obtener total de movimientos
+                const { count } = await supabase
+                    .from('sales')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('client_id', profile.client.id);
+
+                setTotalMovements(count || 0);
+
+                // Obtener últimos 10 movimientos con información del cliente
+                const { data, error } = await supabase
+                    .from('sales')
+                    .select(`
+                        id,
+                        amount,
+                        points_earned,
+                        created_at,
+                        items,
+                        clients!sales_client_id_fkey (
+                            name,
+                            phone
+                        )
+                    `)
+                    .eq('client_id', profile.client.id)
+                    .order('created_at', { ascending: false })
+                    .limit(10);
+
+                if (error) {
+                    console.error('Error fetching movements:', error);
+                    throw error;
+                }
+
+                console.log('Movements fetched:', data); // Debug
+                setRecentMovements(data || []);
+            } catch (error) {
+                console.error('Error fetching movements:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchMovements();
+    }, [profile]);
+
+    // Fetch ofertas activas
+    useEffect(() => {
+        const fetchOffers = async () => {
+            setLoadingOffers(true);
+            try {
+                const { data, error } = await supabase
+                    .from('offers')
+                    .select('*')
+                    .eq('is_active', true)
+                    .order('created_at', { ascending: false });
+
+                if (error) {
+                    console.error('Error fetching offers:', error);
+                    throw error;
+                }
+
+                console.log('Offers fetched:', data); // Debug
+                setOffers(data || []);
+            } catch (error) {
+                console.error('Error fetching offers:', error);
+            } finally {
+                setLoadingOffers(false);
+            }
+        };
+
+        fetchOffers();
+    }, []);
+
+    // Agrupar ofertas de 2 en 2
+    const groupedOffers = [];
+    for (let i = 0; i < offers.length; i += 2) {
+        groupedOffers.push(offers.slice(i, i + 2));
+    }
+
+    // Carrusel automático
+    useEffect(() => {
+        if (groupedOffers.length === 0) return; // No iniciar si no hay ofertas
+
+        const interval = setInterval(() => {
+            setCurrentSlide((prev) => (prev + 1) % groupedOffers.length);
+        }, 4000);
+
+        return () => clearInterval(interval);
+    }, [groupedOffers.length]);
+
+    const nextSlide = () => {
+        setCurrentSlide((prev) => (prev + 1) % groupedOffers.length);
+    };
+
+    const prevSlide = () => {
+        setCurrentSlide((prev) => (prev - 1 + groupedOffers.length) % groupedOffers.length);
+    };
+
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        return date.toLocaleString('es-ES', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+        });
+    };
 
     return (
-        <div className="page-container">
-            <div className="dashboard-header">
-                <div className="dashboard-title-group">
-                    <Sparkles size={28} className="text-gray-800" />
-                    <h1 className="dashboard-title">Bienvenido, {profile?.client?.name || user?.email}</h1>
+        <div className="home-container">
+            {/* Header de Bienvenida con Puntos */}
+            <div className="welcome-header">
+                <h1 className="welcome-title">
+                    Bienvenido: <span className="user-name">{userName}</span>
+                </h1>
+                <div className="points-display-header">
+                    Total puntos acumulados: <span className="points-value">{points} Pts</span>
                 </div>
-                <p className="dashboard-subtitle">
-                    Has iniciado sesión como {profile?.role || 'Visitante'}.
-                </p>
-                {profile?.client && (
-                    <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm text-gray-600">Puntos Acumulados</p>
-                                <p className="text-3xl font-bold text-blue-600">{profile.client.points_balance || 0}</p>
-                            </div>
-                            <Gift size={40} className="text-blue-400" />
-                        </div>
-                        <Link to="/loyalty" className="btn btn-primary mt-3 w-full">
-                            Canjear Puntos
+            </div>
+
+            {/* Últimos Movimientos */}
+            <div className="movements-section">
+                <div className="section-header">
+                    <h2 className="section-title">
+                        Últimos movimientos {totalMovements > 0 && `(${Math.min(10, totalMovements)} movimientos)`}
+                    </h2>
+                    {totalMovements > 10 && (
+                        <Link to="/movements" className="btn-view-all">
+                            Ver Todos
                         </Link>
+                    )}
+                </div>
+
+                {loading ? (
+                    <div className="loading-text">Cargando movimientos...</div>
+                ) : recentMovements.length === 0 ? (
+                    <div className="no-movements">
+                        <p>No tienes movimientos registrados aún.</p>
                     </div>
-                )}
-                {!profile && (
-                    <button onClick={logout} className="btn btn-secondary btn-sm mt-2">
-                        Cerrar Sesión para reintentar
-                    </button>
+                ) : (
+                    <div className="movements-table-container">
+                        <table className="movements-table">
+                            <thead>
+                                <tr>
+                                    <th>CLIENTE</th>
+                                    <th>MONTO</th>
+                                    <th>HORA</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {recentMovements.map((movement) => (
+                                    <tr key={movement.id}>
+                                        <td className="client-name">
+                                            {movement.clients?.name || 'Cliente'}
+                                        </td>
+                                        <td className="amount">${parseFloat(movement.amount || 0).toFixed(2)}</td>
+                                        <td className="time">{formatDate(movement.created_at)}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 )}
             </div>
 
-            <div className="dashboard-grid">
-                {actions.map((action) => {
-                    const Icon = action.icon;
-                    return (
-                        <Link key={action.path} to={action.path} className="dashboard-card">
-                            <div className="dashboard-card-icon-box">
-                                <Icon size={28} />
-                            </div>
-                            <h3 className="dashboard-card-title">{action.label}</h3>
-                            <p className="dashboard-card-desc">{action.description}</p>
-                        </Link>
-                    );
-                })}
+            {/* Botones de Acción */}
+            <div className="action-buttons">
+                <Link to="/loyalty" className="action-btn">
+                    <Gift size={20} />
+                    Ver Opciones de Canje
+                </Link>
+                <Link to="/products" className="action-btn">
+                    <Package size={20} />
+                    Ver Todos los Productos
+                </Link>
+            </div>
+
+            {/* Carrusel de Ofertas */}
+            <div className="offers-section">
+                <h2 className="section-title">Combos y Productos en OFERTA !!</h2>
+
+                {loadingOffers ? (
+                    <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-dim)' }}>
+                        Cargando ofertas...
+                    </div>
+                ) : offers.length === 0 ? (
+                    <div style={{
+                        background: 'var(--bg-glass)',
+                        backdropFilter: 'blur(var(--blur-std))',
+                        border: 'var(--glass-border)',
+                        borderRadius: 'var(--radius-lg)',
+                        padding: '3rem 2rem',
+                        textAlign: 'center'
+                    }}>
+                        <Package size={48} style={{ margin: '0 auto 1rem', opacity: 0.5, color: 'var(--text-dim)' }} />
+                        <p style={{ color: 'var(--text-dim)' }}>No hay ofertas activas en este momento.</p>
+                    </div>
+                ) : (
+                    <div className="carousel-container">
+                        <button className="carousel-btn prev" onClick={prevSlide}>
+                            <ChevronLeft size={24} />
+                        </button>
+
+                        <div className="carousel-track">
+                            {groupedOffers.map((group, index) => (
+                                <div
+                                    key={index}
+                                    className={`carousel-slide ${index === currentSlide ? 'active' : ''}`}
+                                    style={{
+                                        transform: `translateX(${(index - currentSlide) * 100}%)`,
+                                    }}
+                                >
+                                    {group.map((offer) => (
+                                        <div key={offer.id} className="carousel-slide-item" style={{
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            gap: '0.75rem'
+                                        }}>
+                                            {/* Contenedor de imagen */}
+                                            <div style={{
+                                                flex: 1,
+                                                position: 'relative',
+                                                width: '100%',
+                                                background: 'rgba(0, 0, 0, 0.3)',
+                                                borderRadius: 'var(--radius-lg)',
+                                                overflow: 'hidden',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                minHeight: 0
+                                            }}>
+                                                {offer.image_url ? (
+                                                    <>
+                                                        <img
+                                                            src={offer.image_url}
+                                                            alt={offer.name}
+                                                            style={{
+                                                                maxWidth: '100%',
+                                                                maxHeight: '100%',
+                                                                width: 'auto',
+                                                                height: 'auto',
+                                                                objectFit: 'contain',
+                                                                borderRadius: 'var(--radius-lg)'
+                                                            }}
+                                                            onError={(e) => {
+                                                                e.target.style.display = 'none';
+                                                                e.target.parentElement.querySelector('.offer-placeholder').style.display = 'flex';
+                                                            }}
+                                                        />
+                                                        <div className="offer-placeholder" style={{
+                                                            display: 'none',
+                                                            position: 'absolute',
+                                                            top: 0,
+                                                            left: 0,
+                                                            width: '100%',
+                                                            height: '100%'
+                                                        }}>
+                                                            <Package size={60} />
+                                                            <p>Sin imagen</p>
+                                                        </div>
+                                                    </>
+                                                ) : (
+                                                    <div className="offer-placeholder" style={{
+                                                        position: 'absolute',
+                                                        top: 0,
+                                                        left: 0,
+                                                        width: '100%',
+                                                        height: '100%'
+                                                    }}>
+                                                        <Package size={60} />
+                                                        <p>Sin imagen</p>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* Información debajo de la imagen */}
+                                            <div style={{
+                                                textAlign: 'center',
+                                                padding: '0.5rem'
+                                            }}>
+                                                <h3 style={{
+                                                    margin: 0,
+                                                    fontSize: 'clamp(0.9rem, 2vw, 1.1rem)',
+                                                    fontWeight: 'bold',
+                                                    color: 'var(--text-pure)',
+                                                    marginBottom: '0.25rem',
+                                                    lineHeight: 1.2,
+                                                    overflow: 'hidden',
+                                                    textOverflow: 'ellipsis',
+                                                    display: '-webkit-box',
+                                                    WebkitLineClamp: 2,
+                                                    WebkitBoxOrient: 'vertical'
+                                                }}>
+                                                    {offer.name}
+                                                </h3>
+                                                <p style={{
+                                                    margin: 0,
+                                                    fontSize: 'clamp(1.25rem, 3vw, 1.5rem)',
+                                                    fontWeight: 'bold',
+                                                    color: 'var(--neon-green)',
+                                                    textShadow: '0 0 10px rgba(0, 255, 163, 0.5)'
+                                                }}>
+                                                    ${parseFloat(offer.price).toFixed(2)}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ))}
+                        </div>
+
+                        <button className="carousel-btn next" onClick={nextSlide}>
+                            <ChevronRight size={24} />
+                        </button>
+
+                        {/* Indicadores */}
+                        <div className="carousel-indicators">
+                            {groupedOffers.map((_, index) => (
+                                <button
+                                    key={index}
+                                    className={`indicator ${index === currentSlide ? 'active' : ''}`}
+                                    onClick={() => setCurrentSlide(index)}
+                                />
+                            ))}
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

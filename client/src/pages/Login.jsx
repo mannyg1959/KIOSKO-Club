@@ -99,10 +99,9 @@ const Login = () => {
                     </button>
                 </form>
 
-                <div className="mt-6 text-center">
+                <div className="login-register-toggle">
                     <button
                         onClick={() => setIsSignUp(!isSignUp)}
-                        className="text-sm text-blue-800 font-semibold bg-transparent border-none cursor-pointer hover:underline"
                     >
                         {isSignUp ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Regístrate aquí'}
                     </button>

@@ -1,0 +1,394 @@
+/* ============================================
+   HOME PAGE - NEW DESIGN
+   ============================================ */
+
+.home-container {
+    padding: 0;
+    max-width: 100%;
+}
+
+/* Welcome Header */
+.welcome-header {
+    background: linear-gradient(135deg, rgba(157, 0, 255, 0.3) 0%, rgba(255, 0, 229, 0.3) 100%);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(157, 0, 255, 0.3);
+    border-radius: var(--radius-xl);
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 8px 32px rgba(157, 0, 255, 0.2);
+}
+
+.welcome-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-pure);
+    margin-bottom: 0.75rem;
+    text-align: center;
+}
+
+.user-name {
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--neon-cyan) 0%, var(--neon-magenta) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-transform: capitalize;
+}
+
+.points-display-header {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-main);
+    text-align: center;
+}
+
+.points-value {
+    font-size: 1.75rem;
+    font-weight: 900;
+    background: linear-gradient(to bottom, #fff, var(--neon-magenta));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
+}
+
+/* Movements Section */
+.movements-section {
+    margin-bottom: 2rem;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.section-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-pure);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btn-view-all {
+    background: linear-gradient(135deg, rgba(0, 242, 255, 0.2) 0%, rgba(157, 0, 255, 0.2) 100%);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: var(--neon-cyan);
+    border: 1px solid rgba(0, 242, 255, 0.3);
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-lg);
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 242, 255, 0.2);
+}
+
+.btn-view-all:hover {
+    background: rgba(0, 242, 255, 0.3);
+    box-shadow: 0 6px 20px rgba(0, 242, 255, 0.4);
+    transform: translateY(-2px);
+}
+
+.loading-text {
+    text-align: center;
+    color: var(--text-dim);
+    padding: 2rem;
+    font-size: 0.875rem;
+}
+
+.no-movements {
+    background: var(--bg-glass);
+    backdrop-filter: blur(var(--blur-std));
+    -webkit-backdrop-filter: blur(var(--blur-std));
+    border: var(--glass-border);
+    border-radius: var(--radius-lg);
+    padding: 3rem 2rem;
+    text-align: center;
+}
+
+.no-movements p {
+    color: var(--text-dim);
+    font-size: 0.9375rem;
+}
+
+/* Movements Table */
+.movements-table-container {
+    background: rgba(255, 255, 255, 0.02);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: var(--glass-border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+.movements-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.movements-table thead {
+    background: rgba(0, 242, 255, 0.1);
+    border-bottom: 1px solid rgba(0, 242, 255, 0.2);
+}
+
+.movements-table th {
+    padding: 1rem 1.5rem;
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--neon-cyan);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.movements-table tbody tr {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    transition: background 0.2s ease;
+}
+
+.movements-table tbody tr:hover {
+    background: rgba(0, 242, 255, 0.03);
+}
+
+.movements-table td {
+    padding: 1rem 1.5rem;
+    color: var(--text-main);
+    font-size: 0.9375rem;
+}
+
+.movements-table td.client-name {
+    font-weight: 600;
+    color: var(--text-pure);
+}
+
+.movements-table td.amount {
+    font-weight: 700;
+    color: var(--neon-green);
+}
+
+.movements-table td.time {
+    color: var(--text-dim);
+    font-size: 0.875rem;
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.action-btn {
+    background: linear-gradient(135deg, rgba(0, 242, 255, 0.15) 0%, rgba(157, 0, 255, 0.15) 100%);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 242, 255, 0.3);
+    border-radius: var(--radius-lg);
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    color: var(--neon-cyan);
+    font-weight: 700;
+    font-size: 0.9375rem;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 242, 255, 0.2);
+}
+
+.action-btn:hover {
+    background: linear-gradient(135deg, rgba(0, 242, 255, 0.25) 0%, rgba(157, 0, 255, 0.25) 100%);
+    border-color: rgba(0, 242, 255, 0.5);
+    box-shadow: 0 6px 25px rgba(0, 242, 255, 0.4);
+    transform: translateY(-2px);
+    color: var(--text-pure);
+}
+
+/* Offers Section */
+.offers-section {
+    margin-bottom: 2rem;
+}
+
+.carousel-container {
+    position: relative;
+    background: var(--bg-glass);
+    backdrop-filter: blur(var(--blur-std));
+    -webkit-backdrop-filter: blur(var(--blur-std));
+    border: var(--glass-border);
+    border-radius: var(--radius-xl);
+    padding: 2rem;
+    overflow: hidden;
+    margin-top: 1rem;
+}
+
+.carousel-track {
+    position: relative;
+    height: 400px;
+    overflow: hidden;
+}
+
+.carousel-slide {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.5s ease-in-out;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    padding: 0 0.5rem;
+}
+
+.carousel-slide-item {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.offer-placeholder {
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px dashed rgba(0, 242, 255, 0.3);
+    border-radius: var(--radius-lg);
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    color: var(--text-dim);
+}
+
+.offer-placeholder p {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--neon-cyan);
+}
+
+.carousel-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 242, 255, 0.2);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 242, 255, 0.3);
+    color: var(--neon-cyan);
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+.carousel-btn:hover {
+    background: rgba(0, 242, 255, 0.3);
+    box-shadow: 0 0 20px rgba(0, 242, 255, 0.5);
+    transform: translateY(-50%) scale(1.1);
+}
+
+.carousel-btn.prev {
+    left: 1rem;
+}
+
+.carousel-btn.next {
+    right: 1rem;
+}
+
+.carousel-indicators {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+}
+
+.indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 0;
+}
+
+.indicator.active {
+    background: var(--neon-cyan);
+    border-color: var(--neon-cyan);
+    box-shadow: 0 0 10px rgba(0, 242, 255, 0.5);
+    width: 30px;
+    border-radius: 5px;
+}
+
+.indicator:hover {
+    background: rgba(0, 242, 255, 0.5);
+    border-color: var(--neon-cyan);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .welcome-header {
+        padding: 1.5rem;
+    }
+
+    .welcome-title {
+        font-size: 1rem;
+    }
+
+    .points-value {
+        font-size: 1.5rem;
+    }
+
+    .movements-table th,
+    .movements-table td {
+        padding: 0.75rem 1rem;
+        font-size: 0.8125rem;
+    }
+
+    .action-buttons {
+        grid-template-columns: 1fr;
+    }
+
+    .carousel-track {
+        height: 250px;
+    }
+
+    /* En móviles mostrar 1 oferta a la vez */
+    .carousel-slide {
+        grid-template-columns: 1fr;
+        gap: 0;
+        padding: 0;
+    }
+
+    .offer-placeholder {
+        height: 200px;
+    }
+
+    .carousel-btn {
+        width: 40px;
+        height: 40px;
+    }
+
+    .carousel-btn.prev {
+        left: 0.5rem;
+    }
+
+    .carousel-btn.next {
+        right: 0.5rem;
+    }
+}

@@ -1,34 +1,19 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { Package, Plus, Trash2, Tag } from 'lucide-react';
+import { Package, Plus } from 'lucide-react';
 
 const Products = () => {
-    const [products, setProducts] = useState([]);
-    const [formData, setFormData] = useState({ name: '', price: '', stock: '' });
+    const [formData, setFormData] = useState({ name: '', price: '', image_url: '' });
     const [loading, setLoading] = useState(false);
-    const [fetchError, setFetchError] = useState(null);
-
-    useEffect(() => {
-        fetchProducts();
-    }, []);
-
-    const fetchProducts = async () => {
-        try {
-            const { data, error } = await supabase
-                .from('products')
-                .select('*')
-                .order('created_at', { ascending: false });
-
-            if (error) throw error;
-            setProducts(data);
-        } catch (error) {
-            setFetchError(error.message);
-        }
-    };
+    const [error, setError] = useState(null);
+    const [success, setSuccess] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
+        setError(null);
+        setSuccess(false);
 
         try {
             const { error } = await supabase
@@ -36,33 +21,20 @@ const Products = () => {
                 .insert([{
                     name: formData.name,
                     price: parseFloat(formData.price),
-                    stock: parseInt(formData.stock) || 0
+                    image_url: formData.image_url || null
                 }]);
 
             if (error) throw error;
 
-            setFormData({ name: '', price: '', stock: '' });
-            fetchProducts();
+            setFormData({ name: '', price: '', image_url: '' });
+            setSuccess(true);
+
+            // Clear success message after 3 seconds
+            setTimeout(() => setSuccess(false), 3000);
         } catch (error) {
-            alert('Error creating product: ' + error.message);
+            setError('Error al crear producto: ' + error.message);
         } finally {
             setLoading(false);
-        }
-    };
-
-    const handleDelete = async (id) => {
-        if (!confirm('¿Estás seguro de eliminar este producto?')) return;
-
-        try {
-            const { error } = await supabase
-                .from('products')
-                .delete()
-                .eq('id', id);
-
-            if (error) throw error;
-            setProducts(products.filter(p => p.id !== id));
-        } catch (error) {
-            alert('Error deleting product: ' + error.message);
         }
     };
 
@@ -70,117 +42,97 @@ const Products = () => {
         <div className="entry-container">
             <div className="entry-header">
                 <div className="entry-title-group">
-                    <h2 className="entry-title">Gestión de Productos</h2>
-                    <p className="entry-subtitle">Administra tu inventario de productos</p>
+                    <h2 className="entry-title">Registrar Producto</h2>
+                    <p className="entry-subtitle">Añade nuevos productos al catálogo</p>
                 </div>
+                <Link
+                    to="/products-list"
+                    className="btn btn-primary"
+                >
+                    <Package size={18} />
+                    Ver Productos
+                </Link>
             </div>
 
-            <div className="entry-grid-sidebar">
-                {/* Form Section */}
-                <div>
-                    <div className="entry-card sticky top-6">
-                        <h3 className="entry-form-title">Nuevo Producto</h3>
-                        <form onSubmit={handleSubmit}>
-                            <div className="input-group">
-                                <label className="input-label">Nombre del Producto</label>
-                                <input
-                                    type="text"
-                                    placeholder="Ej: Empanada"
-                                    className="input-field"
-                                    value={formData.name}
-                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                    required
-                                />
-                            </div>
+            <div className="entry-card" style={{ maxWidth: '600px' }}>
+                <h3 className="entry-form-title">Datos del Producto</h3>
 
-                            <div className="input-group">
-                                <label className="input-label">Precio ($)</label>
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    placeholder="0.00"
-                                    className="input-field"
-                                    value={formData.price}
-                                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                                    required
-                                />
-                            </div>
-
-                            <div className="input-group">
-                                <label className="input-label">Stock Inicial</label>
-                                <input
-                                    type="number"
-                                    placeholder="0"
-                                    className="input-field"
-                                    value={formData.stock}
-                                    onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
-                                />
-                            </div>
-
-                            <button
-                                type="submit"
-                                className="btn-primary w-full justify-center"
-                                style={{ marginTop: '1rem', padding: '1rem' }}
-                                disabled={loading}
-                            >
-                                <Plus size={18} />
-                                {loading ? 'Guardando...' : 'Agregar Producto'}
-                            </button>
-                        </form>
+                {error && (
+                    <div style={{
+                        background: 'rgba(255, 0, 100, 0.1)',
+                        border: '1px solid rgba(255, 0, 100, 0.3)',
+                        padding: '0.75rem',
+                        borderRadius: '8px',
+                        marginBottom: '1rem',
+                        color: '#ff0066'
+                    }}>
+                        {error}
                     </div>
-                </div>
+                )}
 
-                {/* List Section */}
-                <div>
-                    <div className="entry-card h-full flex flex-col">
-                        <h3 className="entry-form-title">Inventario Actual</h3>
-                        {fetchError && <div className="p-3 mb-4 text-red-600 bg-red-50 rounded-lg">{fetchError}</div>}
-
-                        <div className="flex-1 overflow-hidden">
-                            {products.length === 0 ? (
-                                <div className="text-center py-12 text-gray-400">
-                                    <Package size={48} className="mx-auto mb-4 opacity-50" />
-                                    <p>No hay productos registrados.</p>
-                                </div>
-                            ) : (
-                                <div className="entry-table-container">
-                                    <table className="entry-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Producto</th>
-                                                <th>Precio</th>
-                                                <th>Stock</th>
-                                                <th className="text-center">Acciones</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {products.map((product) => (
-                                                <tr key={product.id}>
-                                                    <td className="font-semibold">{product.name}</td>
-                                                    <td className="font-bold text-gray-800">${product.price}</td>
-                                                    <td>
-                                                        <span className={`px-2 py-1 rounded text-sm ${product.stock > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                                                            {product.stock} un.
-                                                        </span>
-                                                    </td>
-                                                    <td className="text-center">
-                                                        <button
-                                                            onClick={() => handleDelete(product.id)}
-                                                            className="entry-action-btn delete"
-                                                            title="Eliminar"
-                                                        >
-                                                            <Trash2 size={18} />
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            )}
-                        </div>
+                {success && (
+                    <div style={{
+                        background: 'rgba(0, 255, 163, 0.1)',
+                        border: '1px solid rgba(0, 255, 163, 0.3)',
+                        padding: '0.75rem',
+                        borderRadius: '8px',
+                        marginBottom: '1rem',
+                        color: 'var(--neon-green)'
+                    }}>
+                        ✓ Producto creado exitosamente
                     </div>
-                </div>
+                )}
+
+                <form onSubmit={handleSubmit}>
+                    <div className="input-group">
+                        <label className="input-label">Nombre del Producto *</label>
+                        <input
+                            type="text"
+                            placeholder="Ej: Coca Cola 500ml"
+                            className="input-field"
+                            value={formData.name}
+                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                            required
+                        />
+                    </div>
+
+                    <div className="input-group">
+                        <label className="input-label">Precio ($) *</label>
+                        <input
+                            type="number"
+                            step="0.01"
+                            placeholder="0.00"
+                            className="input-field"
+                            value={formData.price}
+                            onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                            required
+                        />
+                    </div>
+
+                    <div className="input-group">
+                        <label className="input-label">URL de Imagen (Opcional)</label>
+                        <input
+                            type="url"
+                            placeholder="https://ejemplo.com/imagen.jpg"
+                            className="input-field"
+                            value={formData.image_url}
+                            onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                        />
+                        <p style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginTop: '0.5rem' }}>
+                            Puedes agregar una imagen del producto para usarla en ofertas
+                        </p>
+                    </div>
+
+                    <button
+                        type="submit"
+                        className="btn btn-success"
+                        style={{ marginTop: '1rem', width: '100%' }}
+                        disabled={loading}
+                    >
+                        <Plus size={18} />
+                        {loading ? 'Guardando...' : 'Agregar Producto'}
+                    </button>
+                </form>
             </div>
         </div>
     );

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, UserPlus, ShoppingCart, Gift, BarChart2, Package, Settings, LogOut, Menu, X } from 'lucide-react';
+import { Home, UserPlus, ShoppingCart, Gift, BarChart2, Package, Settings, LogOut, Menu, X, ChevronDown, ChevronRight, Tag } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 const Layout = ({ children }) => {
@@ -8,11 +8,21 @@ const Layout = ({ children }) => {
     const { profile, logout } = useAuth();
     const isAdmin = profile?.role === 'admin';
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [isProductsOpen, setIsProductsOpen] = useState(false);
 
     const navItems = [
         { path: '/', label: 'Inicio', icon: Home, visible: true },
         { path: '/register', label: 'Clientes', icon: UserPlus, visible: isAdmin },
-        { path: '/products', label: 'Productos', icon: Package, visible: isAdmin },
+        {
+            label: 'Productos',
+            icon: Package,
+            visible: isAdmin,
+            hasSubmenu: true,
+            submenu: [
+                { path: '/products', label: 'Catálogo de Productos', icon: Package },
+                { path: '/offers', label: 'Actualización de Ofertas', icon: Tag }
+            ]
+        },
         { path: '/sales', label: 'Ventas', icon: ShoppingCart, visible: isAdmin },
         { path: '/loyalty', label: 'Canje', icon: Gift, visible: true },
         { path: '/admin', label: 'Admin', icon: BarChart2, visible: isAdmin },
@@ -24,6 +34,10 @@ const Layout = ({ children }) => {
 
     const closeSidebar = () => {
         setIsSidebarOpen(false);
+    };
+
+    const toggleProducts = () => {
+        setIsProductsOpen(!isProductsOpen);
     };
 
     return (
@@ -62,25 +76,74 @@ const Layout = ({ children }) => {
 
                 {/* Navigation Items */}
                 <div className="nav-links">
-                    {navItems.filter(item => item.visible).map((item) => {
-                        const Icon = item.icon;
-                        const isActive = location.pathname === item.path;
+                    {navItems.filter(item => item.visible).map((item, index) => {
+                        if (item.hasSubmenu) {
+                            const Icon = item.icon;
+                            const isSubmenuActive = item.submenu.some(sub => location.pathname === sub.path);
 
-                        return (
-                            <Link
-                                key={item.path}
-                                to={item.path}
-                                className={`nav-item ${isActive ? 'active' : ''}`}
-                                onClick={closeSidebar}
-                            >
-                                <div className="nav-icon-col">
-                                    <Icon size={30} />
+                            return (
+                                <div key={index}>
+                                    <button
+                                        onClick={toggleProducts}
+                                        className={`nav-item ${isSubmenuActive ? 'active' : ''}`}
+                                    >
+                                        <div className="nav-icon-col">
+                                            <Icon size={30} />
+                                        </div>
+                                        <div className="nav-text-col">
+                                            <span>{item.label}</span>
+                                        </div>
+                                        <div className="nav-chevron">
+                                            {isProductsOpen ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
+                                        </div>
+                                    </button>
+
+                                    {isProductsOpen && (
+                                        <div className="submenu">
+                                            {item.submenu.map((subItem) => {
+                                                const SubIcon = subItem.icon;
+                                                const isActive = location.pathname === subItem.path;
+
+                                                return (
+                                                    <Link
+                                                        key={subItem.path}
+                                                        to={subItem.path}
+                                                        className={`submenu-item ${isActive ? 'active' : ''}`}
+                                                        onClick={closeSidebar}
+                                                    >
+                                                        <div className="nav-icon-col">
+                                                            <SubIcon size={24} />
+                                                        </div>
+                                                        <div className="nav-text-col">
+                                                            <span>{subItem.label}</span>
+                                                        </div>
+                                                    </Link>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
                                 </div>
-                                <div className="nav-text-col">
-                                    <span>{item.label}</span>
-                                </div>
-                            </Link>
-                        );
+                            );
+                        } else {
+                            const Icon = item.icon;
+                            const isActive = location.pathname === item.path;
+
+                            return (
+                                <Link
+                                    key={item.path}
+                                    to={item.path}
+                                    className={`nav-item ${isActive ? 'active' : ''}`}
+                                    onClick={closeSidebar}
+                                >
+                                    <div className="nav-icon-col">
+                                        <Icon size={30} />
+                                    </div>
+                                    <div className="nav-text-col">
+                                        <span>{item.label}</span>
+                                    </div>
+                                </Link>
+                            );
+                        }
                     })}
                 </div>
 
