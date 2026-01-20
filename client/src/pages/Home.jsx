@@ -233,7 +233,15 @@ const Home = () => {
     return (
         <div className="home-container">
             {/* Header de Bienvenida con Puntos */}
-            <div style={{ textAlign: 'left', padding: '2rem', background: 'var(--bg-glass)', backdropFilter: 'blur(var(--blur-std))', border: 'var(--glass-border)', borderRadius: 'var(--radius-lg)', marginBottom: '2rem' }}>
+            <div style={{
+                textAlign: 'left',
+                padding: '2rem',
+                background: 'rgb(94, 29, 117)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '20px',
+                marginBottom: '2rem',
+                boxShadow: '0 8px 32px rgba(94, 29, 117, 0.4)'
+            }}>
                 <h1 style={{ textAlign: 'left', color: '#ffffff', fontSize: '1.5rem', fontWeight: '600', marginBottom: '1rem' }}>
                     Bienvenido: <span style={{ color: 'rgb(40, 227, 3)', fontWeight: 'bold' }}>
                         {userDisplayName}
