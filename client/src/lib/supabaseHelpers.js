@@ -28,16 +28,17 @@ export const executeWithRetry = async (queryFn, options = {}) => {
             const result = await Promise.race([queryPromise, timeoutPromise]);
 
             // Verificar si hay error en la respuesta
-            if (result.error) {
+            if (result?.error) {
                 throw result.error;
             }
 
-            // Si llegamos aquí, la consulta fue exitosa
+            // Si llegamos aquí, la consulta fue exitosa (aunque data puede ser null)
+            // Esto es válido para consultas que no encuentran datos
             return result;
 
         } catch (error) {
             lastError = error;
-            console.error(`Intento ${attempt + 1}/${maxRetries} falló:`, error.message);
+            console.error(`Intento ${attempt + 1}/${maxRetries} falló:`, error?.message || error);
 
             // Si es el último intento, lanzar el error
             if (attempt === maxRetries - 1) {

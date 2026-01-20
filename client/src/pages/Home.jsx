@@ -72,16 +72,24 @@ const Home = () => {
 
     // Fetch últimos movimientos del cliente
     useEffect(() => {
+        let isMounted = true; // Para evitar actualizaciones de estado en componentes desmontados
+
         const fetchMovements = async () => {
+            console.log('[fetchMovements] Iniciando...', { hasProfile: !!profile, hasClientId: !!profile?.client?.id });
+
             if (!profile?.client?.id) {
-                setLoading(false);
+                console.log('[fetchMovements] No hay client_id, terminando');
+                if (isMounted) setLoading(false);
                 return;
             }
 
-            setLoading(true);
-            setError(null);
+            if (isMounted) {
+                setLoading(true);
+                setError(null);
+            }
 
             try {
+                console.log('[fetchMovements] Obteniendo count...');
                 // Obtener total de movimientos con reintentos
                 const countResult = await executeWithRetry(
                     () => supabase
@@ -89,13 +97,15 @@ const Home = () => {
                         .select('*', { count: 'exact', head: true })
                         .eq('client_id', profile.client.id),
                     {
-                        maxRetries: 3,
-                        timeout: 10000
+                        maxRetries: 2,
+                        timeout: 5000 // Reducido a 5 segundos
                     }
                 );
 
-                setTotalMovements(countResult.count || 0);
+                console.log('[fetchMovements] Count obtenido:', countResult.count);
+                if (isMounted) setTotalMovements(countResult.count || 0);
 
+                console.log('[fetchMovements] Obteniendo movimientos...');
                 // Obtener últimos 10 movimientos con información del cliente
                 const movementsResult = await executeWithRetry(
                     () => supabase
@@ -115,32 +125,47 @@ const Home = () => {
                         .order('created_at', { ascending: false })
                         .limit(10),
                     {
-                        maxRetries: 3,
-                        timeout: 10000
+                        maxRetries: 2,
+                        timeout: 5000 // Reducido a 5 segundos
                     }
                 );
 
-                setRecentMovements(movementsResult.data || []);
+                console.log('[fetchMovements] Movimientos obtenidos:', movementsResult.data?.length || 0);
+                if (isMounted) setRecentMovements(movementsResult.data || []);
             } catch (error) {
-                console.error('Error fetching movements:', error);
+                console.error('[fetchMovements] Error:', error);
                 const errorMessage = handleSupabaseError(error);
-                setError(errorMessage);
-                setRecentMovements([]);
+                if (isMounted) {
+                    setError(errorMessage);
+                    setRecentMovements([]);
+                }
             } finally {
-                setLoading(false);
+                console.log('[fetchMovements] Finalizando, setLoading(false)');
+                if (isMounted) setLoading(false);
             }
         };
 
         fetchMovements();
+
+        return () => {
+            isMounted = false; // Cleanup
+        };
     }, [profile]);
 
     // Fetch ofertas activas
     useEffect(() => {
+        let isMounted = true;
+
         const fetchOffers = async () => {
-            setLoadingOffers(true);
-            setOffersError(null);
+            console.log('[fetchOffers] Iniciando...');
+
+            if (isMounted) {
+                setLoadingOffers(true);
+                setOffersError(null);
+            }
 
             try {
+                console.log('[fetchOffers] Obteniendo ofertas...');
                 const result = await executeWithRetry(
                     () => supabase
                         .from('offers')
@@ -148,23 +173,31 @@ const Home = () => {
                         .eq('is_active', true)
                         .order('created_at', { ascending: false }),
                     {
-                        maxRetries: 3,
-                        timeout: 10000
+                        maxRetries: 2,
+                        timeout: 5000 // Reducido a 5 segundos
                     }
                 );
 
-                setOffers(result.data || []);
+                console.log('[fetchOffers] Ofertas obtenidas:', result.data?.length || 0);
+                if (isMounted) setOffers(result.data || []);
             } catch (error) {
-                console.error('Error fetching offers:', error);
+                console.error('[fetchOffers] Error:', error);
                 const errorMessage = handleSupabaseError(error);
-                setOffersError(errorMessage);
-                setOffers([]);
+                if (isMounted) {
+                    setOffersError(errorMessage);
+                    setOffers([]);
+                }
             } finally {
-                setLoadingOffers(false);
+                console.log('[fetchOffers] Finalizando, setLoadingOffers(false)');
+                if (isMounted) setLoadingOffers(false);
             }
         };
 
         fetchOffers();
+
+        return () => {
+            isMounted = false;
+        };
     }, []);
 
     // Carrusel automático - 1 oferta a la vez, cada 5 segundos
