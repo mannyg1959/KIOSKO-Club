@@ -98,29 +98,23 @@ const Home = () => {
         fetchOffers();
     }, []);
 
-    // Agrupar ofertas de 2 en 2
-    const groupedOffers = [];
-    for (let i = 0; i < offers.length; i += 2) {
-        groupedOffers.push(offers.slice(i, i + 2));
-    }
-
-    // Carrusel automático
+    // Carrusel automático - 1 oferta a la vez, cada 5 segundos
     useEffect(() => {
-        if (groupedOffers.length === 0) return; // No iniciar si no hay ofertas
+        if (offers.length === 0) return; // No iniciar si no hay ofertas
 
         const interval = setInterval(() => {
-            setCurrentSlide((prev) => (prev + 1) % groupedOffers.length);
-        }, 4000);
+            setCurrentSlide((prev) => (prev + 1) % offers.length);
+        }, 5000); // ✅ Cambiado a 5 segundos
 
         return () => clearInterval(interval);
-    }, [groupedOffers.length]);
+    }, [offers.length]);
 
     const nextSlide = () => {
-        setCurrentSlide((prev) => (prev + 1) % groupedOffers.length);
+        setCurrentSlide((prev) => (prev + 1) % offers.length);
     };
 
     const prevSlide = () => {
-        setCurrentSlide((prev) => (prev - 1 + groupedOffers.length) % groupedOffers.length);
+        setCurrentSlide((prev) => (prev - 1 + offers.length) % offers.length);
     };
 
     const formatDate = (dateString) => {
@@ -230,65 +224,57 @@ const Home = () => {
                         </button>
 
                         <div className="carousel-track">
-                            {groupedOffers.map((group, index) => (
+                            {offers.map((offer, index) => (
                                 <div
-                                    key={index}
+                                    key={offer.id}
                                     className={`carousel-slide ${index === currentSlide ? 'active' : ''}`}
                                     style={{
                                         transform: `translateX(${(index - currentSlide) * 100}%)`,
                                     }}
                                 >
-                                    {group.map((offer) => (
-                                        <div key={offer.id} className="carousel-slide-item" style={{
+                                    {/* Contenedor de la oferta */}
+                                    <div style={{
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        height: '100%',
+                                        gap: '1rem',
+                                        padding: '1rem'
+                                    }}>
+                                        {/* Contenedor de imagen */}
+                                        <div style={{
+                                            position: 'relative',
+                                            width: '100%',
+                                            maxWidth: '500px',
+                                            minHeight: '90px',
+                                            background: 'rgba(0, 0, 0, 0.3)',
+                                            borderRadius: 'var(--radius-lg)',
+                                            overflow: 'hidden',
                                             display: 'flex',
-                                            flexDirection: 'column',
-                                            gap: '0.75rem'
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            aspectRatio: '16/9'
                                         }}>
-                                            {/* Contenedor de imagen */}
-                                            <div style={{
-                                                flex: 1,
-                                                position: 'relative',
-                                                width: '100%',
-                                                background: 'rgba(0, 0, 0, 0.3)',
-                                                borderRadius: 'var(--radius-lg)',
-                                                overflow: 'hidden',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                minHeight: 0
-                                            }}>
-                                                {offer.image_url ? (
-                                                    <>
-                                                        <img
-                                                            src={offer.image_url}
-                                                            alt={offer.name}
-                                                            style={{
-                                                                maxWidth: '100%',
-                                                                maxHeight: '100%',
-                                                                width: 'auto',
-                                                                height: 'auto',
-                                                                objectFit: 'contain',
-                                                                borderRadius: 'var(--radius-lg)'
-                                                            }}
-                                                            onError={(e) => {
-                                                                e.target.style.display = 'none';
-                                                                e.target.parentElement.querySelector('.offer-placeholder').style.display = 'flex';
-                                                            }}
-                                                        />
-                                                        <div className="offer-placeholder" style={{
-                                                            display: 'none',
-                                                            position: 'absolute',
-                                                            top: 0,
-                                                            left: 0,
-                                                            width: '100%',
-                                                            height: '100%'
-                                                        }}>
-                                                            <Package size={60} />
-                                                            <p>Sin imagen</p>
-                                                        </div>
-                                                    </>
-                                                ) : (
+                                            {offer.image_url ? (
+                                                <>
+                                                    <img
+                                                        src={offer.image_url}
+                                                        alt={offer.name}
+                                                        style={{
+                                                            maxWidth: '100%',
+                                                            maxHeight: '100%',
+                                                            width: 'auto',
+                                                            height: 'auto',
+                                                            objectFit: 'contain'
+                                                        }}
+                                                        onError={(e) => {
+                                                            e.target.style.display = 'none';
+                                                            e.target.parentElement.querySelector('.offer-placeholder').style.display = 'flex';
+                                                        }}
+                                                    />
                                                     <div className="offer-placeholder" style={{
+                                                        display: 'none',
                                                         position: 'absolute',
                                                         top: 0,
                                                         left: 0,
@@ -298,41 +284,49 @@ const Home = () => {
                                                         <Package size={60} />
                                                         <p>Sin imagen</p>
                                                     </div>
-                                                )}
-                                            </div>
-
-                                            {/* Información debajo de la imagen */}
-                                            <div style={{
-                                                textAlign: 'center',
-                                                padding: '0.5rem'
-                                            }}>
-                                                <h3 style={{
-                                                    margin: 0,
-                                                    fontSize: 'clamp(0.9rem, 2vw, 1.1rem)',
-                                                    fontWeight: 'bold',
-                                                    color: 'var(--text-pure)',
-                                                    marginBottom: '0.25rem',
-                                                    lineHeight: 1.2,
-                                                    overflow: 'hidden',
-                                                    textOverflow: 'ellipsis',
-                                                    display: '-webkit-box',
-                                                    WebkitLineClamp: 2,
-                                                    WebkitBoxOrient: 'vertical'
+                                                </>
+                                            ) : (
+                                                <div className="offer-placeholder" style={{
+                                                    position: 'absolute',
+                                                    top: 0,
+                                                    left: 0,
+                                                    width: '100%',
+                                                    height: '100%'
                                                 }}>
-                                                    {offer.name}
-                                                </h3>
-                                                <p style={{
-                                                    margin: 0,
-                                                    fontSize: 'clamp(1.25rem, 3vw, 1.5rem)',
-                                                    fontWeight: 'bold',
-                                                    color: 'var(--neon-green)',
-                                                    textShadow: '0 0 10px rgba(0, 255, 163, 0.5)'
-                                                }}>
-                                                    ${parseFloat(offer.price).toFixed(2)}
-                                                </p>
-                                            </div>
+                                                    <Package size={60} />
+                                                    <p>Sin imagen</p>
+                                                </div>
+                                            )}
                                         </div>
-                                    ))}
+
+                                        {/* Información debajo de la imagen - SIEMPRE VISIBLE */}
+                                        <div style={{
+                                            width: '100%',
+                                            maxWidth: '500px'
+                                        }}>
+                                            <h3 style={{
+                                                margin: 0,
+                                                fontSize: 'clamp(0.875rem, 2vw, 1rem)',
+                                                fontWeight: '600',
+                                                color: 'var(--text-pure)',
+                                                marginBottom: '0.25rem',
+                                                lineHeight: 1.2,
+                                                textAlign: 'left'
+                                            }}>
+                                                {offer.name}
+                                            </h3>
+                                            <p style={{
+                                                margin: 0,
+                                                fontSize: 'clamp(0.875rem, 2vw, 1rem)',
+                                                fontWeight: '600',
+                                                color: 'var(--neon-green)',
+                                                textShadow: '0 0 10px rgba(0, 255, 163, 0.5)',
+                                                textAlign: 'left'
+                                            }}>
+                                                ${parseFloat(offer.price).toFixed(2)}
+                                            </p>
+                                        </div>
+                                    </div>
                                 </div>
                             ))}
                         </div>
@@ -343,7 +337,7 @@ const Home = () => {
 
                         {/* Indicadores */}
                         <div className="carousel-indicators">
-                            {groupedOffers.map((_, index) => (
+                            {offers.map((_, index) => (
                                 <button
                                     key={index}
                                     className={`indicator ${index === currentSlide ? 'active' : ''}`}

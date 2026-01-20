@@ -8,6 +8,7 @@ import Loyalty from './pages/Loyalty';
 import AdminDashboard from './pages/AdminDashboard';
 import Products from './pages/Products';
 import ProductsList from './pages/ProductsList';
+import ProductCatalog from './pages/ProductCatalog';
 import OffersManagement from './pages/OffersManagement';
 import Login from './pages/Login';
 import CompleteProfile from './pages/CompleteProfile';
@@ -50,6 +51,7 @@ function App() {
                   )}
 
                   {/* Shared/Client Routes */}
+                  <Route path="/catalog" element={<ProductCatalog />} />
                   <Route path="/loyalty" element={<Loyalty />} />
 
                   {profile?.role === 'admin' && (

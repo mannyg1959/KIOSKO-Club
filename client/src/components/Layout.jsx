@@ -12,6 +12,7 @@ const Layout = ({ children }) => {
 
     const navItems = [
         { path: '/', label: 'Inicio', icon: Home, visible: true },
+        { path: '/catalog', label: 'Catálogo de Productos', icon: Package, visible: true, openInNewTab: true },
         { path: '/register', label: 'Clientes', icon: UserPlus, visible: isAdmin },
         {
             label: 'Productos',
@@ -127,6 +128,27 @@ const Layout = ({ children }) => {
                         } else {
                             const Icon = item.icon;
                             const isActive = location.pathname === item.path;
+
+                            // Si debe abrir en nueva pestaña, usar <a> en lugar de <Link>
+                            if (item.openInNewTab) {
+                                return (
+                                    <a
+                                        key={item.path}
+                                        href={item.path}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className={`nav-item ${isActive ? 'active' : ''}`}
+                                        onClick={closeSidebar}
+                                    >
+                                        <div className="nav-icon-col">
+                                            <Icon size={30} />
+                                        </div>
+                                        <div className="nav-text-col">
+                                            <span>{item.label}</span>
+                                        </div>
+                                    </a>
+                                );
+                            }
 
                             return (
                                 <Link

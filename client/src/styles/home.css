@@ -241,10 +241,9 @@
     width: 100%;
     height: 100%;
     transition: transform 0.5s ease-in-out;
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1.5rem;
-    padding: 0 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .carousel-slide-item {
@@ -364,15 +363,17 @@
         grid-template-columns: 1fr;
     }
 
+    /* Carrusel en móviles - tamaño mínimo 90px */
     .carousel-track {
-        height: 250px;
+        height: auto;
+        min-height: 90px;
     }
 
     /* En móviles mostrar 1 oferta a la vez */
     .carousel-slide {
         grid-template-columns: 1fr;
         gap: 0;
-        padding: 0;
+        padding: 0.5rem;
     }
 
     .offer-placeholder {
