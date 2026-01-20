@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Gift, Package, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
+import { executeWithRetry, handleSupabaseError } from '../lib/supabaseHelpers';
 import '../styles/home.css';
 
 const Home = () => {
@@ -13,10 +14,61 @@ const Home = () => {
     const [loading, setLoading] = useState(true);
     const [offers, setOffers] = useState([]);
     const [loadingOffers, setLoadingOffers] = useState(true);
+    const [userDisplayName, setUserDisplayName] = useState('Usuario');
+    const [error, setError] = useState(null);
+    const [offersError, setOffersError] = useState(null);
 
     // Datos del usuario
-    const userName = profile?.username || profile?.email?.split('@')[0] || 'Usuario';
     const points = profile?.client?.points_balance || 0;
+
+    // Obtener nombre del usuario (cliente o admin)
+    useEffect(() => {
+        const fetchUserName = async () => {
+            if (!profile) return;
+
+            try {
+                // Si es cliente, obtener nombre de la tabla clients
+                if (profile.client?.id) {
+                    const result = await executeWithRetry(
+                        () => supabase
+                            .from('clients')
+                            .select('name')
+                            .eq('id', profile.client.id)
+                            .single(),
+                        {
+                            maxRetries: 3,
+                            timeout: 8000,
+                            onError: (err) => console.error('Error obteniendo nombre de cliente:', err)
+                        }
+                    );
+
+                    if (result.data?.name) {
+                        setUserDisplayName(result.data.name);
+                        return;
+                    }
+                }
+
+                // Si es admin o no se encontró nombre de cliente, usar el nombre del perfil
+                if (profile.full_name) {
+                    setUserDisplayName(profile.full_name);
+                } else if (profile.username) {
+                    setUserDisplayName(profile.username);
+                } else if (profile.email) {
+                    setUserDisplayName(profile.email.split('@')[0]);
+                }
+            } catch (error) {
+                console.error('Error fetching user name:', error);
+                // Fallback al email
+                if (profile.email) {
+                    setUserDisplayName(profile.email.split('@')[0]);
+                } else {
+                    setUserDisplayName('Usuario');
+                }
+            }
+        };
+
+        fetchUserName();
+    }, [profile]);
 
     // Fetch últimos movimientos del cliente
     useEffect(() => {
@@ -26,42 +78,54 @@ const Home = () => {
                 return;
             }
 
-            try {
-                // Obtener total de movimientos
-                const { count } = await supabase
-                    .from('sales')
-                    .select('*', { count: 'exact', head: true })
-                    .eq('client_id', profile.client.id);
+            setLoading(true);
+            setError(null);
 
-                setTotalMovements(count || 0);
+            try {
+                // Obtener total de movimientos con reintentos
+                const countResult = await executeWithRetry(
+                    () => supabase
+                        .from('sales')
+                        .select('*', { count: 'exact', head: true })
+                        .eq('client_id', profile.client.id),
+                    {
+                        maxRetries: 3,
+                        timeout: 10000
+                    }
+                );
+
+                setTotalMovements(countResult.count || 0);
 
                 // Obtener últimos 10 movimientos con información del cliente
-                const { data, error } = await supabase
-                    .from('sales')
-                    .select(`
-                        id,
-                        amount,
-                        points_earned,
-                        created_at,
-                        items,
-                        clients!sales_client_id_fkey (
-                            name,
-                            phone
-                        )
-                    `)
-                    .eq('client_id', profile.client.id)
-                    .order('created_at', { ascending: false })
-                    .limit(10);
+                const movementsResult = await executeWithRetry(
+                    () => supabase
+                        .from('sales')
+                        .select(`
+                            id,
+                            amount,
+                            points_earned,
+                            created_at,
+                            items,
+                            clients!sales_client_id_fkey (
+                                name,
+                                phone
+                            )
+                        `)
+                        .eq('client_id', profile.client.id)
+                        .order('created_at', { ascending: false })
+                        .limit(10),
+                    {
+                        maxRetries: 3,
+                        timeout: 10000
+                    }
+                );
 
-                if (error) {
-                    console.error('Error fetching movements:', error);
-                    throw error;
-                }
-
-                console.log('Movements fetched:', data); // Debug
-                setRecentMovements(data || []);
+                setRecentMovements(movementsResult.data || []);
             } catch (error) {
                 console.error('Error fetching movements:', error);
+                const errorMessage = handleSupabaseError(error);
+                setError(errorMessage);
+                setRecentMovements([]);
             } finally {
                 setLoading(false);
             }
@@ -74,22 +138,27 @@ const Home = () => {
     useEffect(() => {
         const fetchOffers = async () => {
             setLoadingOffers(true);
+            setOffersError(null);
+
             try {
-                const { data, error } = await supabase
-                    .from('offers')
-                    .select('*')
-                    .eq('is_active', true)
-                    .order('created_at', { ascending: false });
+                const result = await executeWithRetry(
+                    () => supabase
+                        .from('offers')
+                        .select('*')
+                        .eq('is_active', true)
+                        .order('created_at', { ascending: false }),
+                    {
+                        maxRetries: 3,
+                        timeout: 10000
+                    }
+                );
 
-                if (error) {
-                    console.error('Error fetching offers:', error);
-                    throw error;
-                }
-
-                console.log('Offers fetched:', data); // Debug
-                setOffers(data || []);
+                setOffers(result.data || []);
             } catch (error) {
                 console.error('Error fetching offers:', error);
+                const errorMessage = handleSupabaseError(error);
+                setOffersError(errorMessage);
+                setOffers([]);
             } finally {
                 setLoadingOffers(false);
             }
@@ -131,71 +200,19 @@ const Home = () => {
     return (
         <div className="home-container">
             {/* Header de Bienvenida con Puntos */}
-            <div className="welcome-header">
-                <h1 className="welcome-title">
-                    Bienvenido: <span className="user-name">{userName}</span>
+            <div style={{ textAlign: 'left', padding: '2rem', background: 'var(--bg-glass)', backdropFilter: 'blur(var(--blur-std))', border: 'var(--glass-border)', borderRadius: 'var(--radius-lg)', marginBottom: '2rem' }}>
+                <h1 style={{ textAlign: 'left', color: '#ffffff', fontSize: '1.5rem', fontWeight: '600', marginBottom: '1rem' }}>
+                    Bienvenido: <span style={{ color: 'rgb(40, 227, 3)', fontWeight: 'bold' }}>
+                        {userDisplayName}
+                    </span>
                 </h1>
-                <div className="points-display-header">
-                    Total puntos acumulados: <span className="points-value">{points} Pts</span>
+                <div style={{ textAlign: 'left', color: '#ffffff', fontSize: '1.125rem' }}>
+                    Total puntos acumulados: <span style={{ color: 'rgb(40, 227, 3)', fontSize: '2rem', fontWeight: 'bold' }}>
+                        {points} Pts
+                    </span>
                 </div>
             </div>
 
-            {/* Últimos Movimientos */}
-            <div className="movements-section">
-                <div className="section-header">
-                    <h2 className="section-title">
-                        Últimos movimientos {totalMovements > 0 && `(${Math.min(10, totalMovements)} movimientos)`}
-                    </h2>
-                    {totalMovements > 10 && (
-                        <Link to="/movements" className="btn-view-all">
-                            Ver Todos
-                        </Link>
-                    )}
-                </div>
-
-                {loading ? (
-                    <div className="loading-text">Cargando movimientos...</div>
-                ) : recentMovements.length === 0 ? (
-                    <div className="no-movements">
-                        <p>No tienes movimientos registrados aún.</p>
-                    </div>
-                ) : (
-                    <div className="movements-table-container">
-                        <table className="movements-table">
-                            <thead>
-                                <tr>
-                                    <th>CLIENTE</th>
-                                    <th>MONTO</th>
-                                    <th>HORA</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {recentMovements.map((movement) => (
-                                    <tr key={movement.id}>
-                                        <td className="client-name">
-                                            {movement.clients?.name || 'Cliente'}
-                                        </td>
-                                        <td className="amount">${parseFloat(movement.amount || 0).toFixed(2)}</td>
-                                        <td className="time">{formatDate(movement.created_at)}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
-            </div>
-
-            {/* Botones de Acción */}
-            <div className="action-buttons">
-                <Link to="/loyalty" className="action-btn">
-                    <Gift size={20} />
-                    Ver Opciones de Canje
-                </Link>
-                <Link to="/catalog" className="action-btn">
-                    <Package size={20} />
-                    Ver Todos los Productos
-                </Link>
-            </div>
 
             {/* Carrusel de Ofertas */}
             <div className="offers-section">
@@ -204,6 +221,34 @@ const Home = () => {
                 {loadingOffers ? (
                     <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-dim)' }}>
                         Cargando ofertas...
+                    </div>
+                ) : offersError ? (
+                    <div style={{
+                        background: 'rgba(255, 59, 48, 0.1)',
+                        backdropFilter: 'blur(var(--blur-std))',
+                        border: '1px solid rgba(255, 59, 48, 0.3)',
+                        borderRadius: 'var(--radius-lg)',
+                        padding: '2rem',
+                        textAlign: 'center'
+                    }}>
+                        <Package size={48} style={{ margin: '0 auto 1rem', opacity: 0.5, color: '#ff3b30' }} />
+                        <p style={{ color: '#ff3b30', marginBottom: '0.5rem', fontWeight: '600' }}>Error al cargar ofertas</p>
+                        <p style={{ color: 'var(--text-dim)', fontSize: '0.875rem' }}>{offersError}</p>
+                        <button
+                            onClick={() => window.location.reload()}
+                            style={{
+                                marginTop: '1rem',
+                                padding: '0.5rem 1rem',
+                                background: 'var(--neon-cyan)',
+                                color: 'var(--bg-dark)',
+                                border: 'none',
+                                borderRadius: 'var(--radius-md)',
+                                cursor: 'pointer',
+                                fontWeight: '600'
+                            }}
+                        >
+                            Reintentar
+                        </button>
                     </div>
                 ) : offers.length === 0 ? (
                     <div style={{
@@ -364,6 +409,92 @@ const Home = () => {
                         )}
                     </div>
                 )}
+            </div>
+
+            {/* Últimos Movimientos */}
+            <div className="movements-section">
+                <div className="section-header">
+                    <h2 className="section-title">
+                        Últimos movimientos {totalMovements > 0 && `(${Math.min(10, totalMovements)} movimientos)`}
+                    </h2>
+                    {totalMovements > 10 && (
+                        <Link to="/movements" className="btn-view-all">
+                            Ver Todos
+                        </Link>
+                    )}
+                </div>
+
+                {loading ? (
+                    <div className="loading-text">Cargando movimientos...</div>
+                ) : error ? (
+                    <div style={{
+                        background: 'rgba(255, 59, 48, 0.1)',
+                        backdropFilter: 'blur(var(--blur-std))',
+                        border: '1px solid rgba(255, 59, 48, 0.3)',
+                        borderRadius: 'var(--radius-lg)',
+                        padding: '2rem',
+                        textAlign: 'center',
+                        marginTop: '1rem'
+                    }}>
+                        <Package size={48} style={{ margin: '0 auto 1rem', opacity: 0.5, color: '#ff3b30' }} />
+                        <p style={{ color: '#ff3b30', marginBottom: '0.5rem', fontWeight: '600' }}>Error al cargar movimientos</p>
+                        <p style={{ color: 'var(--text-dim)', fontSize: '0.875rem' }}>{error}</p>
+                        <button
+                            onClick={() => window.location.reload()}
+                            style={{
+                                marginTop: '1rem',
+                                padding: '0.5rem 1rem',
+                                background: 'var(--neon-cyan)',
+                                color: 'var(--bg-dark)',
+                                border: 'none',
+                                borderRadius: 'var(--radius-md)',
+                                cursor: 'pointer',
+                                fontWeight: '600'
+                            }}
+                        >
+                            Reintentar
+                        </button>
+                    </div>
+                ) : recentMovements.length === 0 ? (
+                    <div className="no-movements">
+                        <p>No tienes movimientos registrados aún.</p>
+                    </div>
+                ) : (
+                    <div className="movements-table-container">
+                        <table className="movements-table">
+                            <thead>
+                                <tr>
+                                    <th>CLIENTE</th>
+                                    <th>MONTO</th>
+                                    <th>HORA</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {recentMovements.map((movement) => (
+                                    <tr key={movement.id}>
+                                        <td className="client-name">
+                                            {movement.clients?.name || 'Cliente'}
+                                        </td>
+                                        <td className="amount">${parseFloat(movement.amount || 0).toFixed(2)}</td>
+                                        <td className="time">{formatDate(movement.created_at)}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </div>
+
+            {/* Botones de Acción */}
+            <div className="action-buttons">
+                <Link to="/loyalty" className="action-btn">
+                    <Gift size={20} />
+                    Ver Opciones de Canje
+                </Link>
+                <Link to="/catalog" className="action-btn">
+                    <Package size={20} />
+                    Ver Todos los Productos
+                </Link>
             </div>
         </div>
     );
