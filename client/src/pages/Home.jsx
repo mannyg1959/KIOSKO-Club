@@ -191,7 +191,7 @@ const Home = () => {
                     <Gift size={20} />
                     Ver Opciones de Canje
                 </Link>
-                <Link to="/products" className="action-btn">
+                <Link to="/catalog" className="action-btn">
                     <Package size={20} />
                     Ver Todos los Productos
                 </Link>
