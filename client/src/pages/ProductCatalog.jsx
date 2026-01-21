@@ -8,50 +8,40 @@ const ProductCatalog = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    useEffect(() => {
-        let isMounted = true;
+    const fetchProducts = async () => {
+        console.log('[fetchProducts] Iniciando...');
 
-        const fetchProducts = async () => {
-            console.log('[fetchProducts] Iniciando...');
+        setLoading(true);
+        setError(null);
 
-            if (isMounted) {
-                setLoading(true);
-                setError(null);
-            }
-
-            try {
-                console.log('[fetchProducts] Obteniendo productos...');
-                const result = await executeWithRetry(
-                    () => supabase
-                        .from('products')
-                        .select('*')
-                        .order('name'),
-                    {
-                        maxRetries: 2,
-                        timeout: 5000
-                    }
-                );
-
-                console.log('[fetchProducts] Productos obtenidos:', result.data?.length || 0);
-                if (isMounted) setProducts(result.data || []);
-            } catch (err) {
-                console.error('[fetchProducts] Error:', err);
-                const errorMessage = handleSupabaseError(err);
-                if (isMounted) {
-                    setError(errorMessage);
-                    setProducts([]);
+        try {
+            console.log('[fetchProducts] Obteniendo productos...');
+            const result = await executeWithRetry(
+                () => supabase
+                    .from('products')
+                    .select('*')
+                    .order('name'),
+                {
+                    maxRetries: 2,
+                    timeout: 5000
                 }
-            } finally {
-                console.log('[fetchProducts] Finalizando, setLoading(false)');
-                if (isMounted) setLoading(false);
-            }
-        };
+            );
 
+            console.log('[fetchProducts] Productos obtenidos:', result.data?.length || 0);
+            setProducts(result.data || []);
+        } catch (err) {
+            console.error('[fetchProducts] Error:', err);
+            const errorMessage = handleSupabaseError(err);
+            setError(errorMessage);
+            setProducts([]);
+        } finally {
+            console.log('[fetchProducts] Finalizando, setLoading(false)');
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
         fetchProducts();
-
-        return () => {
-            isMounted = false;
-        };
     }, []);
 
     return (
@@ -80,7 +70,7 @@ const ProductCatalog = () => {
                     <h3 style={{ color: '#ff4d4d', marginBottom: '0.5rem' }}>Error al cargar productos</h3>
                     <p style={{ color: 'var(--text-dim)', marginBottom: '1.5rem' }}>{error}</p>
                     <button
-                        onClick={() => window.location.reload()}
+                        onClick={fetchProducts}
                         style={{
                             marginTop: '1rem',
                             padding: '0.5rem 1rem',
