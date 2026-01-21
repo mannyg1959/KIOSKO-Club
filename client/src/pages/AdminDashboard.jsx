@@ -46,25 +46,25 @@ const AdminDashboard = () => {
                     .from('sales')
                     .select('amount')
                     .gte('created_at', today.toISOString()),
-                { maxRetries: 2, timeout: 5000 }
+                { maxRetries: 2, timeout: 30000 }
             );
             const totalSales = salesResult.data?.reduce((sum, sale) => sum + Number(sale.amount), 0) || 0;
 
             // 2. Total Clients
             const clientResult = await executeWithRetry(
                 () => supabase.from('clients').select('*', { count: 'exact', head: true }),
-                { maxRetries: 2, timeout: 5000 }
+                { maxRetries: 2, timeout: 30000 }
             );
 
             // 3. Recent Sales & Redemptions
             const recentSalesResult = await executeWithRetry(
                 () => supabase.from('sales').select('*, clients(name, phone)').order('created_at', { ascending: false }).limit(5),
-                { maxRetries: 2, timeout: 5000 }
+                { maxRetries: 2, timeout: 30000 }
             );
 
             const recentRedemptionsResult = await executeWithRetry(
                 () => supabase.from('redemptions').select('*, clients(name, phone)').order('created_at', { ascending: false }).limit(5),
-                { maxRetries: 2, timeout: 5000 }
+                { maxRetries: 2, timeout: 30000 }
             );
 
             setStats({

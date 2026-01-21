@@ -35,7 +35,7 @@ const OffersManagement = () => {
                     .order('created_at', { ascending: false }),
                 {
                     maxRetries: 2,
-                    timeout: 5000
+                    timeout: 30000
                 }
             );
 
@@ -49,7 +49,7 @@ const OffersManagement = () => {
                     .order('name'),
                 {
                     maxRetries: 2,
-                    timeout: 5000
+                    timeout: 30000
                 }
             );
 

@@ -10,7 +10,7 @@ export const executeWithRetry = async (queryFn, options = {}) => {
     const {
         maxRetries = 3,
         retryDelay = 1000,
-        timeout = 10000,
+        timeout = 30000, // ✅ Aumentado a 30 segundos
         onError = null
     } = options;
 

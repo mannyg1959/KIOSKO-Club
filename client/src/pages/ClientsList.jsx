@@ -27,7 +27,7 @@ const ClientsList = () => {
                     .order('created_at', { ascending: false }),
                 {
                     maxRetries: 2,
-                    timeout: 5000
+                    timeout: 30000
                 }
             );
 

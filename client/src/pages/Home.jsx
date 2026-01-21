@@ -98,7 +98,7 @@ const Home = () => {
                         .eq('client_id', profile.client.id),
                     {
                         maxRetries: 2,
-                        timeout: 5000 // Reducido a 5 segundos
+                        timeout: 30000 // Reducido a 5 segundos
                     }
                 );
 
@@ -126,7 +126,7 @@ const Home = () => {
                         .limit(10),
                     {
                         maxRetries: 2,
-                        timeout: 5000 // Reducido a 5 segundos
+                        timeout: 30000 // Reducido a 5 segundos
                     }
                 );
 
@@ -174,7 +174,7 @@ const Home = () => {
                         .order('created_at', { ascending: false }),
                     {
                         maxRetries: 2,
-                        timeout: 5000 // Reducido a 5 segundos
+                        timeout: 30000 // Reducido a 5 segundos
                     }
                 );
 

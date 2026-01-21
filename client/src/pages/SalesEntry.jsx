@@ -29,7 +29,7 @@ const SalesEntry = () => {
         try {
             const result = await executeWithRetry(
                 () => supabase.from('products').select('*').gt('stock', 0),
-                { maxRetries: 2, timeout: 5000 }
+                { maxRetries: 2, timeout: 30000 }
             );
             if (result.data) setProducts(result.data);
         } catch (error) {
@@ -41,7 +41,7 @@ const SalesEntry = () => {
         try {
             const result = await executeWithRetry(
                 () => supabase.from('prizes').select('*').order('points', { ascending: true }),
-                { maxRetries: 2, timeout: 5000 }
+                { maxRetries: 2, timeout: 30000 }
             );
             if (result.data) setPrizes(result.data);
         } catch (error) {

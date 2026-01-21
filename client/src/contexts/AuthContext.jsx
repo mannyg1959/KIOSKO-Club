@@ -145,11 +145,13 @@ export const AuthProvider = ({ children }) => {
             if (error) throw error;
             setUser(null);
             setProfile(null);
+            window.location.href = '/login';
         } catch (err) {
             console.error("Error during logout:", err);
             // Even if there's an error, clear local state
             setUser(null);
             setProfile(null);
+            window.location.href = '/login';
         }
     };
 

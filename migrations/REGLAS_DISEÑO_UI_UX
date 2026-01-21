@@ -1,0 +1,160 @@
+Objetivo:
+Refactorizar completamente el diseño visual y la experiencia de usuario de la aplicación existente para convertirla en una App SaaS moderno, limpio, ejecutivo y orientado a métricas, manteniendo toda la lógica actual del sistema.
+________________________________________
+1. Filosofía de Diseño
+El sistema debe verse como:
+•	Un dashboard moderno de control gerencial
+•	Limpio, minimalista, con mucho espacio en blanco
+•	Orientado a métricas, tarjetas (cards) y visualización de estado
+•	No debe parecer un sistema contable ni un POS tradicional
+Estilo visual:
+“SaaS Dashboard Premium”
+________________________________________
+2. Sistema de Tipografía
+Usar una sola familia tipográfica moderna sans-serif (prioridad: Inter, alternativa: Poppins o DM Sans).
+Aplicar esta jerarquía:
+•	KPI principal: 32–40px, Semibold/Bold
+•	Títulos de card: 14–16px, Medium
+•	Texto normal: 13–14px, Regular
+•	Texto secundario: 11–12px, Regular
+•	Botones: 13–14px, Medium
+Unificar toda la aplicación a esta jerarquía.
+________________________________________
+3. Sistema de Colores
+Colores base:
+•	Fondo general: #F6F7FB
+•	Fondo de cards: #FFFFFF
+•	Texto principal: #0F172A
+•	Texto secundario: #64748B
+•	Bordes suaves: #E5E7EB
+Colores semánticos:
+•	Éxito / positivo: #22C55E
+•	Advertencia: #FACC15
+•	Error: #EF4444
+•	Informativo / primario: #6366F1
+Reglas:
+•	No usar más de 1 color fuerte por card
+•	El color debe comunicar estado, no decorar
+________________________________________
+4. Layout y Grid
+•	Implementar layout con:
+o	Sidebar izquierdo fijo (240–280px)
+o	Área principal en grid de 12 columnas
+•	Todo el contenido debe organizarse en cards
+•	Usar sistema de espaciado consistente: 4, 8, 12, 16, 24, 32 px
+________________________________________
+5. Cards (Componente principal del sistema)
+Todas las vistas deben estar compuestas por cards:
+Estilo de card:
+•	Fondo blanco
+•	Border radius: 12–16px
+•	Sombra suave: 0 1px 2px rgba(0,0,0,0.05)
+•	Padding interno amplio
+Estructura interna:
+•	Título pequeño arriba
+•	Contenido principal al centro
+•	Información secundaria abajo
+________________________________________
+6. KPI Cards
+Usar tarjetas de métricas como componente central del dashboard:
+Cada KPI Card debe tener:
+•	Título pequeño
+•	Número grande destacado
+•	Indicador de variación (↑ verde / ↓ rojo)
+•	Texto explicativo pequeño
+Aplicar este patrón a:
+•	Ventas
+•	Clientes
+•	Puntos
+•	Canjes
+•	Actividad diaria
+________________________________________
+7. Botones
+Tipos:
+•	Primary: acción principal (Registrar venta, Canjear)
+•	Secondary: acciones secundarias
+•	Ghost: navegación
+Estilo:
+•	Altura: 40–44px
+•	Border radius: 10–12px
+•	Colores sólidos
+•	Sin bordes fuertes
+________________________________________
+8. Inputs y Formularios
+•	Altura: 40–44px
+•	Bordes suaves
+•	Placeholder gris
+•	Focus con color primario
+•	No usar formularios densos
+________________________________________
+9. Sidebar
+•	Fondo claro
+•	Íconos simples
+•	Opción activa con:
+o	Fondo suave
+o	Indicador visual lateral
+•	Mantener navegación siempre visible
+Secciones mínimas:
+•	Dashboard
+•	Ventas
+•	Clientes
+•	Fidelización
+•	Reportes
+•	Configuración
+________________________________________
+10. Gráficas
+•	Estilo suave
+•	Líneas curvas
+•	Sin bordes duros
+•	Colores pastel derivados del sistema de colores
+•	Usar:
+o	Líneas
+o	Área
+o	Donas
+________________________________________
+11. Tablas
+•	Evitar tablas densas
+•	Convertir datos importantes en:
+o	Cards
+o	Listas visuales
+o	Resúmenes
+________________________________________
+12. Microinteracciones
+Agregar:
+•	Hover en cards
+•	Transiciones suaves (150–250ms)
+•	Feedback visual al:
+o	Registrar venta
+o	Sumar puntos
+o	Canjear premio
+________________________________________
+13. Jerarquía Visual Obligatoria
+Prioridad visual:
+1.	Dinero / Ventas
+2.	Actividad
+3.	Puntos
+4.	Canjes
+5.	Detalles
+Esto debe reflejarse en:
+•	Tamaño
+•	Posición
+•	Contraste
+________________________________________
+14. Refactorización del Diseño Existente
+Instrucciones:
+•	NO cambiar lógica de negocio
+•	SOLO:
+o	Unificar tipografía
+o	Unificar colores
+o	Reorganizar layout en cards
+o	Aplicar grid y jerarquía visual
+o	Simplificar pantallas complejas
+o	Convertir vistas densas en dashboards visuales
+________________________________________
+15. Criterio de Calidad Final
+Cada pantalla debe cumplir:
+•	Se entiende en menos de 5 segundos
+•	El dato más importante es lo primero que se ve
+•	No hay más de un color fuerte por sección
+•	Parece un producto SaaS moderno
+________________________________________

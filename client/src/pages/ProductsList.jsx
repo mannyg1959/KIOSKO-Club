@@ -29,7 +29,7 @@ const ProductsList = () => {
                     .order('name'),
                 {
                     maxRetries: 2,
-                    timeout: 5000
+                    timeout: 30000
                 }
             );
 
