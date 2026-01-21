@@ -12,50 +12,40 @@ const ClientsList = () => {
     const [editForm, setEditForm] = useState({ name: '', phone: '', email: '', userType: 'client' });
     const [deleteError, setDeleteError] = useState(null);
 
-    useEffect(() => {
-        let isMounted = true;
+    const fetchClients = async () => {
+        console.log('[fetchClients] Iniciando...');
 
-        const fetchClients = async () => {
-            console.log('[fetchClients] Iniciando...');
+        setLoading(true);
+        setError(null);
 
-            if (isMounted) {
-                setLoading(true);
-                setError(null);
-            }
-
-            try {
-                console.log('[fetchClients] Obteniendo clientes...');
-                const result = await executeWithRetry(
-                    () => supabase
-                        .from('clients')
-                        .select('*')
-                        .order('created_at', { ascending: false }),
-                    {
-                        maxRetries: 2,
-                        timeout: 5000
-                    }
-                );
-
-                console.log('[fetchClients] Clientes obtenidos:', result.data?.length || 0);
-                if (isMounted) setClients(result.data || []);
-            } catch (err) {
-                console.error('[fetchClients] Error:', err);
-                const errorMessage = handleSupabaseError(err);
-                if (isMounted) {
-                    setError(errorMessage);
-                    setClients([]);
+        try {
+            console.log('[fetchClients] Obteniendo clientes...');
+            const result = await executeWithRetry(
+                () => supabase
+                    .from('clients')
+                    .select('*')
+                    .order('created_at', { ascending: false }),
+                {
+                    maxRetries: 2,
+                    timeout: 5000
                 }
-            } finally {
-                console.log('[fetchClients] Finalizando, setLoading(false)');
-                if (isMounted) setLoading(false);
-            }
-        };
+            );
 
+            console.log('[fetchClients] Clientes obtenidos:', result.data?.length || 0);
+            setClients(result.data || []);
+        } catch (err) {
+            console.error('[fetchClients] Error:', err);
+            const errorMessage = handleSupabaseError(err);
+            setError(errorMessage);
+            setClients([]);
+        } finally {
+            console.log('[fetchClients] Finalizando, setLoading(false)');
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
         fetchClients();
-
-        return () => {
-            isMounted = false;
-        };
     }, []);
 
     const startEdit = (client) => {
@@ -177,7 +167,7 @@ const ClientsList = () => {
                     <h3 style={{ color: '#ff4d4d', marginBottom: '0.5rem' }}>Error al cargar clientes</h3>
                     <p style={{ color: 'var(--text-dim)', marginBottom: '1.5rem' }}>{error}</p>
                     <button
-                        onClick={() => window.location.reload()}
+                        onClick={fetchClients}
                         style={{
                             marginTop: '1rem',
                             padding: '0.5rem 1rem',

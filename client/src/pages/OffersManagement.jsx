@@ -20,69 +20,57 @@ const OffersManagement = () => {
     const [error, setError] = useState(null);
     const [uploadingImage, setUploadingImage] = useState(false);
 
+    const fetchData = async () => {
+        console.log('[fetchData] Iniciando...');
+
+        setLoading(true);
+        setLoadError(null);
+
+        try {
+            console.log('[fetchData] Obteniendo ofertas...');
+            const offersResult = await executeWithRetry(
+                () => supabase
+                    .from('offers')
+                    .select('*')
+                    .order('created_at', { ascending: false }),
+                {
+                    maxRetries: 2,
+                    timeout: 5000
+                }
+            );
+
+            console.log('[fetchData] Ofertas obtenidas:', offersResult.data?.length || 0);
+
+            console.log('[fetchData] Obteniendo productos...');
+            const productsResult = await executeWithRetry(
+                () => supabase
+                    .from('products')
+                    .select('*')
+                    .order('name'),
+                {
+                    maxRetries: 2,
+                    timeout: 5000
+                }
+            );
+
+            console.log('[fetchData] Productos obtenidos:', productsResult.data?.length || 0);
+
+            setOffers(offersResult.data || []);
+            setProducts(productsResult.data || []);
+        } catch (err) {
+            console.error('[fetchData] Error:', err);
+            const errorMessage = handleSupabaseError(err);
+            setLoadError(errorMessage);
+            setOffers([]);
+            setProducts([]);
+        } finally {
+            console.log('[fetchData] Finalizando, setLoading(false)');
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        let isMounted = true;
-
-        const fetchData = async () => {
-            console.log('[fetchData] Iniciando...');
-
-            if (isMounted) {
-                setLoading(true);
-                setLoadError(null);
-            }
-
-            try {
-                console.log('[fetchData] Obteniendo ofertas...');
-                const offersResult = await executeWithRetry(
-                    () => supabase
-                        .from('offers')
-                        .select('*')
-                        .order('created_at', { ascending: false }),
-                    {
-                        maxRetries: 2,
-                        timeout: 5000
-                    }
-                );
-
-                console.log('[fetchData] Ofertas obtenidas:', offersResult.data?.length || 0);
-
-                console.log('[fetchData] Obteniendo productos...');
-                const productsResult = await executeWithRetry(
-                    () => supabase
-                        .from('products')
-                        .select('*')
-                        .order('name'),
-                    {
-                        maxRetries: 2,
-                        timeout: 5000
-                    }
-                );
-
-                console.log('[fetchData] Productos obtenidos:', productsResult.data?.length || 0);
-
-                if (isMounted) {
-                    setOffers(offersResult.data || []);
-                    setProducts(productsResult.data || []);
-                }
-            } catch (err) {
-                console.error('[fetchData] Error:', err);
-                const errorMessage = handleSupabaseError(err);
-                if (isMounted) {
-                    setLoadError(errorMessage);
-                    setOffers([]);
-                    setProducts([]);
-                }
-            } finally {
-                console.log('[fetchData] Finalizando, setLoading(false)');
-                if (isMounted) setLoading(false);
-            }
-        };
-
         fetchData();
-
-        return () => {
-            isMounted = false;
-        };
     }, []);
 
     const handleSubmit = async (e) => {
@@ -515,7 +503,7 @@ const OffersManagement = () => {
                     <h3 style={{ color: '#ff4d4d', marginBottom: '0.5rem' }}>Error al cargar datos</h3>
                     <p style={{ color: 'var(--text-dim)', marginBottom: '1.5rem' }}>{loadError}</p>
                     <button
-                        onClick={() => window.location.reload()}
+                        onClick={fetchData}
                         style={{
                             marginTop: '1rem',
                             padding: '0.5rem 1rem',
