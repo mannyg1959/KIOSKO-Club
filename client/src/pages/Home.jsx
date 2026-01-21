@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { Gift, Package, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
+import { Gift, Package, ChevronLeft, ChevronRight, Eye, RefreshCw } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { executeWithRetry, handleSupabaseError } from '../lib/supabaseHelpers';
@@ -19,6 +19,7 @@ const Home = () => {
     const [error, setError] = useState(null);
     const [offersError, setOffersError] = useState(null);
     const [itemsPerPage, setItemsPerPage] = useState(4);
+    const [isRefreshing, setIsRefreshing] = useState(false);
 
     // Responsive items per page
     useEffect(() => {
@@ -160,6 +161,25 @@ const Home = () => {
     useEffect(() => {
         fetchMovements();
     }, [fetchMovements]);
+
+    // Auto-refresh movements every 30 seconds
+    useEffect(() => {
+        const interval = setInterval(() => {
+            if (profile?.client?.id) {
+                console.log('[Auto-refresh] Actualizando movimientos...');
+                fetchMovements();
+            }
+        }, 30000); // 30 seconds
+
+        return () => clearInterval(interval);
+    }, [profile, fetchMovements]);
+
+    // Manual refresh function
+    const handleRefreshMovements = async () => {
+        setIsRefreshing(true);
+        await fetchMovements();
+        setTimeout(() => setIsRefreshing(false), 500);
+    };
 
     // Fetch ofertas activas
     const fetchOffers = useCallback(async () => {
@@ -439,11 +459,28 @@ const Home = () => {
             <div className="card">
                 <div className="flex justify-between items-center mb-6">
                     <h2 className="section-title mb-0">Últimos Movimientos</h2>
-                    {totalMovements > 10 && (
-                        <Link to="/movements" className="btn btn-secondary btn-sm">
-                            Ver Todos
-                        </Link>
-                    )}
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <button
+                            onClick={handleRefreshMovements}
+                            className="btn btn-secondary"
+                            disabled={isRefreshing}
+                            title="Actualizar movimientos"
+                            style={{ padding: '0.5rem 1rem' }}
+                        >
+                            <RefreshCw
+                                size={18}
+                                style={{
+                                    animation: isRefreshing ? 'spin 1s linear infinite' : 'none'
+                                }}
+                            />
+                            Actualizar
+                        </button>
+                        {totalMovements > 10 && (
+                            <Link to="/movements" className="btn btn-secondary">
+                                Ver Todos
+                            </Link>
+                        )}
+                    </div>
                 </div>
 
                 {loading ? (
