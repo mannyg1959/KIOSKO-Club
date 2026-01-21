@@ -194,324 +194,268 @@ const ProductsList = () => {
     };
 
     return (
-        <div className="entry-container">
-            <div className="entry-header">
-                <div className="entry-title-group">
-                    <h2 className="entry-title">Catálogo de Productos</h2>
-                    <p className="entry-subtitle">Gestión completa de productos del kiosko</p>
+        <div className="flex flex-col gap-6">
+            {/* Main Card */}
+            <div className="card" style={{ maxWidth: '100%', margin: '0 auto', width: '100%' }}>
+                {/* Header */}
+                <div className="flex justify-between items-start mb-8">
+                    <div>
+                        <h2 style={{ fontSize: '1.75rem', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
+                            Catálogo de Productos
+                        </h2>
+                        <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
+                            Gestión completa de productos del kiosko
+                        </p>
+                    </div>
+                    <Link to="/products" className="btn btn-secondary">
+                        <ArrowLeft size={20} />
+                        Volver a Registro
+                    </Link>
                 </div>
-                <Link to="/products" className="btn btn-secondary">
-                    <ArrowLeft size={18} />
-                    Volver a Registro
-                </Link>
-            </div>
 
-            {deleteError && (
-                <div style={{
-                    background: 'rgba(255, 0, 100, 0.1)',
-                    border: '1px solid rgba(255, 0, 100, 0.3)',
-                    padding: '0.75rem',
-                    borderRadius: '8px',
-                    marginBottom: '1rem',
-                    color: '#ff0066'
-                }}>
-                    {deleteError}
-                </div>
-            )}
+                {/* Error Messages */}
+                {deleteError && (
+                    <div className="error-message mb-4">{deleteError}</div>
+                )}
 
-            {saving && (
-                <div style={{
-                    background: 'rgba(0, 242, 255, 0.1)',
-                    border: '1px solid rgba(0, 242, 255, 0.3)',
-                    padding: '0.75rem',
-                    borderRadius: '8px',
-                    marginBottom: '1rem',
-                    color: 'var(--neon-cyan)',
-                    textAlign: 'center'
-                }}>
-                    Guardando cambios...
-                </div>
-            )}
+                {saving && (
+                    <div style={{
+                        background: 'var(--info-light)',
+                        color: 'var(--info)',
+                        padding: '0.75rem',
+                        borderRadius: 'var(--radius-md)',
+                        marginBottom: '1rem',
+                        textAlign: 'center',
+                        fontWeight: '500'
+                    }}>
+                        Guardando cambios...
+                    </div>
+                )}
 
-            {loading ? (
-                <div className="loading-text" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-dim)' }}>
-                    Cargando productos...
-                </div>
-            ) : error ? (
-                <div style={{
-                    background: 'rgba(255, 77, 77, 0.1)',
-                    backdropFilter: 'blur(var(--blur-std))',
-                    border: '1px solid rgba(255, 77, 77, 0.3)',
-                    borderRadius: 'var(--radius-lg)',
-                    padding: '2rem',
-                    textAlign: 'center'
-                }}>
-                    <Package size={48} style={{ margin: '0 auto 1rem', opacity: 0.7, color: '#ff4d4d' }} />
-                    <h3 style={{ color: '#ff4d4d', marginBottom: '0.5rem' }}>Error al cargar productos</h3>
-                    <p style={{ color: 'var(--text-dim)', marginBottom: '1.5rem' }}>{error}</p>
-                    <button
-                        onClick={fetchProducts}
-                        style={{
-                            marginTop: '1rem',
-                            padding: '0.5rem 1rem',
-                            background: 'var(--neon-cyan)',
-                            color: 'var(--bg-dark)',
-                            border: 'none',
-                            borderRadius: 'var(--radius-md)',
-                            cursor: 'pointer',
-                            fontWeight: '600'
-                        }}
-                    >
-                        Reintentar
-                    </button>
-                </div>
-            ) : products.length === 0 ? (
-                <div className="no-movements" style={{
-                    background: 'var(--bg-glass)',
-                    backdropFilter: 'blur(var(--blur-std))',
-                    border: 'var(--glass-border)',
-                    borderRadius: 'var(--radius-lg)',
-                    padding: '3rem 2rem',
-                    textAlign: 'center'
-                }}>
-                    <Package size={48} style={{ margin: '0 auto 1rem', opacity: 0.5, color: 'var(--text-dim)' }} />
-                    <p style={{ color: 'var(--text-dim)' }}>No hay productos registrados aún.</p>
-                </div>
-            ) : (
-                <div className="entry-table-container">
-                    <table className="entry-table">
-                        <thead>
-                            <tr>
-                                <th>Imagen</th>
-                                <th>Nombre</th>
-                                <th>Precio</th>
-                                <th>Registrado</th>
-                                <th style={{ textAlign: 'center' }}>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {products.map((product) => (
-                                <tr key={product.id}>
-                                    {editingProduct === product.id ? (
-                                        <>
-                                            <td>
-                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', minWidth: '180px' }}>
-                                                    {/* Preview de imagen */}
-                                                    {editForm.image_url && (
-                                                        <div style={{ position: 'relative' }}>
-                                                            <img
-                                                                src={editForm.image_url}
-                                                                alt="Preview"
-                                                                style={{
-                                                                    width: '100%',
-                                                                    maxWidth: '120px',
-                                                                    height: '80px',
-                                                                    objectFit: 'cover',
-                                                                    borderRadius: '8px',
-                                                                    border: '1px solid rgba(0, 242, 255, 0.3)'
-                                                                }}
-                                                                onError={(e) => {
-                                                                    e.target.style.display = 'none';
-                                                                }}
+                {/* Table Section */}
+                {loading ? (
+                    <div className="text-center p-12 text-secondary">Cargando productos...</div>
+                ) : error ? (
+                    <div className="text-center p-8 text-error">{error}</div>
+                ) : products.length === 0 ? (
+                    <div className="text-center p-12 text-secondary">
+                        <Package size={48} className="mx-auto mb-4 opacity-30" />
+                        <p>No hay productos registrados aún.</p>
+                    </div>
+                ) : (
+                    <div className="table-container">
+                        <table style={{ fontSize: '0.85rem' }}>
+                            <thead>
+                                <tr>
+                                    <th style={{ width: '80px', fontSize: '0.75rem' }}>IMAGEN</th>
+                                    <th style={{ fontSize: '0.75rem' }}>NOMBRE</th>
+                                    <th style={{ width: '120px', fontSize: '0.75rem' }}>PRECIO</th>
+                                    <th style={{ width: '130px', fontSize: '0.75rem' }}>REGISTRADO</th>
+                                    <th style={{ width: '120px', textAlign: 'center', fontSize: '0.75rem' }}>ACCIONES</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {products.map((product) => (
+                                    <tr key={product.id}>
+                                        {editingProduct === product.id ? (
+                                            <>
+                                                <td>
+                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', minWidth: '120px' }}>
+                                                        {editForm.image_url && (
+                                                            <div style={{ position: 'relative' }}>
+                                                                <img
+                                                                    src={editForm.image_url}
+                                                                    alt="Preview"
+                                                                    style={{
+                                                                        width: '80px',
+                                                                        height: '60px',
+                                                                        objectFit: 'cover',
+                                                                        borderRadius: '8px',
+                                                                        border: '1px solid var(--border-color)'
+                                                                    }}
+                                                                    onError={(e) => {
+                                                                        e.target.style.display = 'none';
+                                                                    }}
+                                                                />
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => setEditForm({ ...editForm, image_url: '' })}
+                                                                    style={{
+                                                                        position: 'absolute',
+                                                                        top: '-5px',
+                                                                        right: '-5px',
+                                                                        background: 'var(--error)',
+                                                                        border: 'none',
+                                                                        borderRadius: '50%',
+                                                                        width: '18px',
+                                                                        height: '18px',
+                                                                        cursor: 'pointer',
+                                                                        color: 'white',
+                                                                        fontSize: '11px',
+                                                                        display: 'flex',
+                                                                        alignItems: 'center',
+                                                                        justifyContent: 'center'
+                                                                    }}
+                                                                    title="Quitar imagen"
+                                                                >
+                                                                    ×
+                                                                </button>
+                                                            </div>
+                                                        )}
+
+                                                        <label style={{
+                                                            padding: '0.3rem 0.5rem',
+                                                            background: 'var(--primary-light)',
+                                                            border: '1px solid var(--primary)',
+                                                            borderRadius: '6px',
+                                                            cursor: 'pointer',
+                                                            fontSize: '0.7rem',
+                                                            textAlign: 'center',
+                                                            color: 'var(--primary)'
+                                                        }}>
+                                                            {uploadingImage ? 'Subiendo...' : '📷 Subir'}
+                                                            <input
+                                                                type="file"
+                                                                accept="image/*"
+                                                                onChange={handleImageUpload}
+                                                                style={{ display: 'none' }}
+                                                                disabled={uploadingImage}
                                                             />
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => setEditForm({ ...editForm, image_url: '' })}
-                                                                style={{
-                                                                    position: 'absolute',
-                                                                    top: '-5px',
-                                                                    right: '-5px',
-                                                                    background: 'rgba(255, 0, 100, 0.9)',
-                                                                    border: 'none',
-                                                                    borderRadius: '50%',
-                                                                    width: '20px',
-                                                                    height: '20px',
-                                                                    cursor: 'pointer',
-                                                                    color: 'white',
-                                                                    fontSize: '12px',
-                                                                    display: 'flex',
-                                                                    alignItems: 'center',
-                                                                    justifyContent: 'center'
-                                                                }}
-                                                                title="Quitar imagen"
-                                                            >
-                                                                ×
-                                                            </button>
+                                                        </label>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <input
+                                                        type="text"
+                                                        className="input-field"
+                                                        style={{ padding: '0.5rem', margin: 0, fontSize: '0.85rem' }}
+                                                        value={editForm.name}
+                                                        onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                                                        placeholder="Nombre"
+                                                        autoFocus
+                                                    />
+                                                </td>
+                                                <td>
+                                                    <input
+                                                        type="number"
+                                                        step="0.01"
+                                                        className="input-field"
+                                                        style={{ padding: '0.5rem', margin: 0, fontSize: '0.85rem' }}
+                                                        value={editForm.price}
+                                                        onChange={(e) => setEditForm({ ...editForm, price: e.target.value })}
+                                                        placeholder="Precio"
+                                                    />
+                                                </td>
+                                                <td style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
+                                                    {new Date(product.created_at).toLocaleDateString()}
+                                                </td>
+                                                <td>
+                                                    <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+                                                        <button
+                                                            onClick={() => saveEdit(product.id)}
+                                                            className="btn btn-success"
+                                                            style={{ padding: '0.4rem 0.6rem', minWidth: 'auto', height: 'auto' }}
+                                                            title="Guardar"
+                                                            disabled={saving}
+                                                        >
+                                                            <Check size={16} />
+                                                        </button>
+                                                        <button
+                                                            onClick={cancelEdit}
+                                                            className="btn btn-secondary"
+                                                            style={{ padding: '0.4rem 0.6rem', minWidth: 'auto', height: 'auto' }}
+                                                            title="Cancelar"
+                                                            disabled={saving}
+                                                        >
+                                                            <X size={16} />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <td>
+                                                    {product.image_url ? (
+                                                        <img
+                                                            src={product.image_url}
+                                                            alt={product.name}
+                                                            style={{
+                                                                width: '50px',
+                                                                height: '50px',
+                                                                objectFit: 'cover',
+                                                                borderRadius: '8px',
+                                                                border: '1px solid var(--border-color)'
+                                                            }}
+                                                        />
+                                                    ) : (
+                                                        <div style={{
+                                                            width: '50px',
+                                                            height: '50px',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                            background: '#F1F5F9',
+                                                            borderRadius: '8px',
+                                                            border: '1px dashed var(--border-color)'
+                                                        }}>
+                                                            <ImageIcon size={20} style={{ color: 'var(--text-secondary)' }} />
                                                         </div>
                                                     )}
-
-                                                    {/* Botón subir archivo */}
-                                                    <label style={{
-                                                        padding: '0.4rem 0.6rem',
-                                                        background: 'rgba(0, 242, 255, 0.1)',
-                                                        border: '1px solid rgba(0, 242, 255, 0.3)',
+                                                </td>
+                                                <td style={{ fontWeight: 600, fontSize: '0.9rem' }}>
+                                                    {product.name}
+                                                </td>
+                                                <td>
+                                                    <span style={{
+                                                        background: 'var(--success-light)',
+                                                        color: 'var(--success)',
+                                                        padding: '0.25rem 0.5rem',
                                                         borderRadius: '6px',
-                                                        cursor: 'pointer',
-                                                        fontSize: '0.75rem',
-                                                        textAlign: 'center',
-                                                        color: 'var(--neon-cyan)',
-                                                        transition: 'all 0.2s'
-                                                    }}
-                                                        onMouseEnter={(e) => e.target.style.background = 'rgba(0, 242, 255, 0.2)'}
-                                                        onMouseLeave={(e) => e.target.style.background = 'rgba(0, 242, 255, 0.1)'}
-                                                    >
-                                                        {uploadingImage ? 'Cargando...' : '📁 Subir Archivo'}
-                                                        <input
-                                                            type="file"
-                                                            accept="image/*"
-                                                            onChange={handleImageUpload}
-                                                            style={{ display: 'none' }}
-                                                            disabled={uploadingImage}
-                                                        />
-                                                    </label>
-
-                                                    {/* Separador */}
-                                                    <div style={{ textAlign: 'center', color: 'var(--text-dim)', fontSize: '0.7rem' }}>
-                                                        o
-                                                    </div>
-
-                                                    {/* Input URL */}
-                                                    <input
-                                                        type="url"
-                                                        className="input-field"
-                                                        style={{ padding: '0.4rem', margin: 0, fontSize: '0.75rem' }}
-                                                        value={editForm.image_url?.startsWith('data:') ? '' : editForm.image_url}
-                                                        onChange={(e) => setEditForm({ ...editForm, image_url: e.target.value })}
-                                                        placeholder="🔗 Pegar URL"
-                                                        disabled={uploadingImage}
-                                                    />
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <input
-                                                    type="text"
-                                                    className="input-field"
-                                                    style={{ padding: '0.5rem', margin: 0 }}
-                                                    value={editForm.name}
-                                                    onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                                                    placeholder="Nombre"
-                                                    autoFocus
-                                                />
-                                            </td>
-                                            <td>
-                                                <input
-                                                    type="number"
-                                                    step="0.01"
-                                                    className="input-field"
-                                                    style={{ padding: '0.5rem', margin: 0 }}
-                                                    value={editForm.price}
-                                                    onChange={(e) => setEditForm({ ...editForm, price: e.target.value })}
-                                                    placeholder="Precio"
-                                                />
-                                            </td>
-                                            <td style={{ color: 'var(--text-dim)', fontSize: '0.875rem' }}>
-                                                {new Date(product.created_at).toLocaleDateString()}
-                                            </td>
-                                            <td>
-                                                <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
-                                                    <button
-                                                        onClick={() => saveEdit(product.id)}
-                                                        className="entry-action-btn edit"
-                                                        style={{ color: 'var(--neon-green)' }}
-                                                        title="Guardar"
-                                                        disabled={saving}
-                                                    >
-                                                        <Check size={18} />
-                                                    </button>
-                                                    <button
-                                                        onClick={cancelEdit}
-                                                        className="entry-action-btn delete"
-                                                        style={{ color: '#ff0066' }}
-                                                        title="Cancelar"
-                                                        disabled={saving}
-                                                    >
-                                                        <X size={18} />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <td>
-                                                {product.image_url ? (
-                                                    <img
-                                                        src={product.image_url}
-                                                        alt={product.name}
-                                                        style={{
-                                                            width: '60px',
-                                                            height: '60px',
-                                                            objectFit: 'cover',
-                                                            borderRadius: '8px',
-                                                            border: '1px solid rgba(0, 242, 255, 0.2)'
-                                                        }}
-                                                    />
-                                                ) : (
-                                                    <div style={{
-                                                        width: '60px',
-                                                        height: '60px',
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center',
-                                                        background: 'rgba(255, 255, 255, 0.05)',
-                                                        borderRadius: '8px',
-                                                        border: '1px dashed rgba(0, 242, 255, 0.2)'
+                                                        fontSize: '0.85rem',
+                                                        fontWeight: '600'
                                                     }}>
-                                                        <ImageIcon size={24} style={{ color: 'var(--text-dim)' }} />
+                                                        ${parseFloat(product.price).toFixed(2)}
+                                                    </span>
+                                                </td>
+                                                <td style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
+                                                    {new Date(product.created_at).toLocaleDateString()}
+                                                </td>
+                                                <td>
+                                                    <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+                                                        <button
+                                                            onClick={() => startEdit(product)}
+                                                            className="btn btn-secondary"
+                                                            style={{ padding: '0.4rem 0.6rem', minWidth: 'auto', height: 'auto' }}
+                                                            title="Editar"
+                                                        >
+                                                            <Edit2 size={16} />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => deleteProduct(product)}
+                                                            className="btn btn-danger"
+                                                            style={{ padding: '0.4rem 0.6rem', minWidth: 'auto', height: 'auto' }}
+                                                            title="Eliminar"
+                                                        >
+                                                            <Trash2 size={16} />
+                                                        </button>
                                                     </div>
-                                                )}
-                                            </td>
-                                            <td style={{ fontWeight: 600, color: 'var(--text-pure)' }}>
-                                                {product.name}
-                                            </td>
-                                            <td>
-                                                <span style={{
-                                                    background: 'rgba(0, 255, 163, 0.1)',
-                                                    color: 'var(--neon-green)',
-                                                    padding: '0.25rem 0.5rem',
-                                                    borderRadius: '6px',
-                                                    fontSize: '0.875rem',
-                                                    fontWeight: 'bold',
-                                                    border: '1px solid rgba(0, 255, 163, 0.2)'
-                                                }}>
-                                                    ${parseFloat(product.price).toFixed(2)}
-                                                </span>
-                                            </td>
-                                            <td style={{ color: 'var(--text-dim)', fontSize: '0.875rem' }}>
-                                                {new Date(product.created_at).toLocaleDateString()}
-                                            </td>
-                                            <td>
-                                                <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
-                                                    <button
-                                                        onClick={() => startEdit(product)}
-                                                        className="entry-action-btn edit"
-                                                        title="Editar"
-                                                    >
-                                                        <Edit2 size={18} />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => deleteProduct(product)}
-                                                        className="entry-action-btn delete"
-                                                        title="Eliminar"
-                                                    >
-                                                        <Trash2 size={18} />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </>
-                                    )}
+                                                </td>
+                                            </>
+                                        )}
+                                    </tr>
+                                ))}
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colSpan="5" style={{ textAlign: 'left', fontWeight: '600', fontSize: '0.85rem', padding: '1rem' }}>
+                                        Total Productos: {products.length}
+                                    </td>
                                 </tr>
-                            ))}
-                        </tbody>
-                        <tfoot>
-                            <tr>
-                                <td colSpan="5" className="entry-total-footer">
-                                    Total Productos: {products.length}
-                                </td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-            )}
+                            </tfoot>
+                        </table>
+                    </div>
+                )}
+            </div>
         </div>
     );
 };

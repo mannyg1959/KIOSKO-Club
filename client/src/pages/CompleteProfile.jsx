@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { User, Phone, Mail, Save, Sparkles } from 'lucide-react';
+import { User, Phone, Mail, Save, Sparkles, AlertCircle } from 'lucide-react';
 
 const CompleteProfile = () => {
     const { user, profile } = useAuth();
@@ -75,35 +75,33 @@ const CompleteProfile = () => {
     };
 
     return (
-        <div className="login-page">
-            <div className="login-dots"></div>
-            <div className="login-card animate-fade-in" style={{ maxWidth: '500px' }}>
-                {/* Logo Area */}
-                <div className="login-logo-container">
-                    <div className="login-logo-circle">
-                        <div className="login-logo-icon">
-                            <Sparkles size={40} strokeWidth={2.5} />
-                            <div className="star-badge">★</div>
-                        </div>
+        <div className="auth-container">
+            <div className="auth-card">
+                <div className="auth-header">
+                    <div className="auth-logo">
+                        <Sparkles size={32} strokeWidth={2.5} />
                     </div>
+                    <h1 className="auth-title">Kiosko Club</h1>
+                    <p className="auth-subtitle">
+                        ¡Casi listo! Completa tu perfil para continuar
+                    </p>
                 </div>
 
-                <h1 className="login-title">
-                    COMPLETA TU <span className="title-accent">PERFIL</span>
-                </h1>
-                <p className="text-gray-600 text-center mb-6">
-                    Para continuar, necesitamos algunos datos adicionales
-                </p>
+                <form onSubmit={handleSubmit} className="auth-form">
+                    {error && (
+                        <div className="error-message">
+                            <div className="flex items-center justify-center gap-2">
+                                <AlertCircle size={18} />
+                                <span>{error}</span>
+                            </div>
+                        </div>
+                    )}
 
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div className="input-group">
-                        <label className="input-label">
-                            <User size={18} className="inline mr-2" />
-                            Nombre Completo *
-                        </label>
+                    <div className="input-group-icon">
+                        <User className="input-icon" size={20} />
                         <input
                             type="text"
-                            placeholder="Tu nombre completo"
+                            placeholder="Nombre Completo"
                             className="input-field"
                             value={formData.name}
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -111,51 +109,37 @@ const CompleteProfile = () => {
                         />
                     </div>
 
-                    <div className="input-group">
-                        <label className="input-label">
-                            <Phone size={18} className="inline mr-2" />
-                            Número de Teléfono *
-                        </label>
+                    <div className="input-group-icon">
+                        <Phone className="input-icon" size={20} />
                         <input
                             type="tel"
-                            placeholder="Ej: 04141234567"
+                            placeholder="Teléfono (Ej: 04141234567)"
                             className="input-field"
                             value={formData.phone}
                             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                             required
                         />
-                        <p className="text-xs text-gray-500 mt-1">
-                            Este será tu identificador único en el sistema
-                        </p>
                     </div>
 
-                    <div className="input-group">
-                        <label className="input-label">
-                            <Mail size={18} className="inline mr-2" />
-                            Email
-                        </label>
+                    <div className="text-xs text-gray-500 ml-1">
+                        * Este será tu identificador único en el sistema
+                    </div>
+
+                    <div className="input-group-icon">
+                        <Mail className="input-icon" size={20} />
                         <input
                             type="email"
                             className="input-field"
                             value={formData.email}
                             disabled
-                            style={{ backgroundColor: '#f3f4f6', cursor: 'not-allowed' }}
+                            style={{ backgroundColor: '#f3f4f6', cursor: 'not-allowed', color: '#6b7280' }}
                         />
-                        <p className="text-xs text-gray-500 mt-1">
-                            Email de tu cuenta registrada
-                        </p>
                     </div>
-
-                    {error && (
-                        <div className="p-3 rounded-lg bg-red-50 text-red-600 border border-red-200 text-sm">
-                            {error}
-                        </div>
-                    )}
 
                     <button
                         type="submit"
                         className="btn btn-primary w-full"
-                        style={{ marginTop: '1.5rem' }}
+                        style={{ height: '48px', fontSize: '1rem', marginTop: '1rem' }}
                         disabled={loading}
                     >
                         {loading ? 'Guardando...' : (
@@ -165,13 +149,11 @@ const CompleteProfile = () => {
                             </>
                         )}
                     </button>
-                </form>
 
-                <div className="mt-6 text-center">
-                    <p className="text-xs text-gray-500">
-                        Todos los campos marcados con * son obligatorios
+                    <p className="text-center text-xs text-gray-400 mt-4">
+                        Todos los campos marcados son obligatorios para uso interno
                     </p>
-                </div>
+                </form>
             </div>
         </div>
     );

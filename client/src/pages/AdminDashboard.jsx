@@ -193,24 +193,26 @@ const AdminDashboard = () => {
     };
 
     return (
-        <div className="entry-container">
-            <div className="entry-header">
-                <div className="entry-title-group">
-                    <h2 className="entry-title">Administración</h2>
-                    <p className="entry-subtitle">Panel de Control y Configuración</p>
+        <div className="flex flex-col gap-6">
+            <div className="flex justify-between items-center flex-wrap gap-4">
+                <div>
+                    <h2 style={{ fontSize: '1.8rem', fontWeight: '700', color: 'var(--text-primary)' }}>Administración</h2>
+                    <p style={{ color: 'var(--text-secondary)' }}>Panel de Control y Configuración General</p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 bg-white p-1 rounded-lg border border-gray-200">
                     <button
                         onClick={() => setActiveTab('stats')}
                         className={`btn ${activeTab === 'stats' ? 'btn-primary' : 'btn-secondary'}`}
+                        style={{ border: 'none', borderRadius: '6px' }}
                     >
-                        Dashboard
+                        <BarChart2 size={18} /> Dashboard
                     </button>
                     <button
                         onClick={() => setActiveTab('config')}
                         className={`btn ${activeTab === 'config' ? 'btn-primary' : 'btn-secondary'}`}
+                        style={{ border: 'none', borderRadius: '6px' }}
                     >
-                        Configuración
+                        <Settings size={18} /> Configuración
                     </button>
                 </div>
             </div>
@@ -219,63 +221,104 @@ const AdminDashboard = () => {
 
             {!loading && activeTab === 'stats' && (
                 <>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                        <div className="entry-card flex items-center gap-4 border-l-4 border-blue-500">
-                            <div className="p-3 bg-blue-50 text-blue-600 rounded-full"><DollarSign /></div>
-                            <div>
-                                <p className="text-sm text-gray-500 font-bold uppercase">Ventas Hoy</p>
-                                <h3 className="text-2xl font-black text-gray-800">${stats.salesToday.toFixed(2)}</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                        {/* KPI: Ventas Hoy */}
+                        <div className="kpi-card" style={{ borderLeft: '4px solid var(--info)' }}>
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <div className="kpi-title">Ventas Hoy</div>
+                                    <div className="kpi-value">${stats.salesToday.toFixed(2)}</div>
+                                </div>
+                                <div style={{
+                                    background: 'var(--info-light)',
+                                    padding: '10px',
+                                    borderRadius: '50%',
+                                    color: 'var(--info)'
+                                }}>
+                                    <DollarSign size={24} />
+                                </div>
+                            </div>
+                            <div className="kpi-trend trend-up">
+                                <span className="text-sm text-secondary">Ingresos del día actual</span>
                             </div>
                         </div>
-                        <div className="entry-card flex items-center gap-4 border-l-4 border-purple-500">
-                            <div className="p-3 bg-purple-50 text-purple-600 rounded-full"><Users /></div>
-                            <div>
-                                <p className="text-sm text-gray-500 font-bold uppercase">Clientes</p>
-                                <h3 className="text-2xl font-black text-gray-800">{stats.totalClients}</h3>
+
+                        {/* KPI: Clientes */}
+                        <div className="kpi-card" style={{ borderLeft: '4px solid var(--primary)' }}>
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <div className="kpi-title">Clientes Totales</div>
+                                    <div className="kpi-value">{stats.totalClients}</div>
+                                </div>
+                                <div style={{
+                                    background: 'var(--primary-light)',
+                                    padding: '10px',
+                                    borderRadius: '50%',
+                                    color: 'var(--primary)'
+                                }}>
+                                    <Users size={24} />
+                                </div>
+                            </div>
+                            <div className="kpi-trend">
+                                <span className="text-sm text-secondary">Registrados en el sistema</span>
                             </div>
                         </div>
-                        <div className="entry-card flex items-center gap-4 border-l-4 border-orange-500">
-                            <div className="p-3 bg-orange-50 text-orange-600 rounded-full"><Gift /></div>
-                            <div>
-                                <p className="text-sm text-gray-500 font-bold uppercase">Canjes</p>
-                                <h3 className="text-2xl font-black text-gray-800">{stats.recentRedemptions.length}</h3>
+
+                        {/* KPI: Canjes */}
+                        <div className="kpi-card" style={{ borderLeft: '4px solid var(--warning)' }}>
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <div className="kpi-title">Canjes Recientes</div>
+                                    <div className="kpi-value">{stats.recentRedemptions.length}</div>
+                                </div>
+                                <div style={{
+                                    background: 'var(--warning-light)',
+                                    padding: '10px',
+                                    borderRadius: '50%',
+                                    color: 'var(--warning)'
+                                }}>
+                                    <Gift size={24} />
+                                </div>
+                            </div>
+                            <div className="kpi-trend">
+                                <span className="text-sm text-secondary">Últimas transacciones</span>
                             </div>
                         </div>
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <div className="entry-card">
-                            <h3 className="entry-form-title mb-4">Últimas Ventas</h3>
-                            <div className="entry-table-container">
-                                <table className="entry-table">
-                                    <thead><tr><th>Cliente</th><th>Monto</th><th>Hora</th></tr></thead>
+                        <div className="card">
+                            <h3 className="section-title" style={{ fontSize: '1.2rem', marginBottom: '1rem' }}>Últimas Ventas</h3>
+                            <div className="table-container">
+                                <table>
+                                    <thead><tr><th>Cliente</th><th className="text-right">Monto</th><th className="text-right">Hora</th></tr></thead>
                                     <tbody>
                                         {stats.recentSales.map(s => (
                                             <tr key={s.id}>
                                                 <td className="font-medium">{s.clients?.name || s.clients?.phone}</td>
-                                                <td className="text-green-600 font-bold">${s.amount}</td>
-                                                <td className="text-gray-500 text-sm">{new Date(s.created_at).toLocaleTimeString()}</td>
+                                                <td className="text-right" style={{ color: 'var(--success)', fontWeight: 'bold' }}>${s.amount}</td>
+                                                <td className="text-right text-gray-500 text-sm">{new Date(s.created_at).toLocaleTimeString()}</td>
                                             </tr>
                                         ))}
-                                        {stats.recentSales.length === 0 && <tr><td colSpan="3" className="text-center p-4">Sin datos</td></tr>}
+                                        {stats.recentSales.length === 0 && <tr><td colSpan="3" className="text-center p-4">Sin datos recientes</td></tr>}
                                     </tbody>
                                 </table>
                             </div>
                         </div>
-                        <div className="entry-card">
-                            <h3 className="entry-form-title mb-4">Canjes Recientes</h3>
-                            <div className="entry-table-container">
-                                <table className="entry-table">
-                                    <thead><tr><th>Cliente</th><th>Premio</th><th>Puntos</th></tr></thead>
+                        <div className="card">
+                            <h3 className="section-title" style={{ fontSize: '1.2rem', marginBottom: '1rem' }}>Canjes Recientes</h3>
+                            <div className="table-container">
+                                <table>
+                                    <thead><tr><th>Cliente</th><th>Premio</th><th className="text-right">Puntos</th></tr></thead>
                                     <tbody>
                                         {stats.recentRedemptions.map(r => (
                                             <tr key={r.id}>
                                                 <td className="font-medium">{r.clients?.name || r.clients?.phone}</td>
                                                 <td>{r.prize_description}</td>
-                                                <td className="text-red-500 font-bold">-{r.points_cost}</td>
+                                                <td className="text-right" style={{ color: 'var(--error)', fontWeight: 'bold' }}>-{r.points_cost}</td>
                                             </tr>
                                         ))}
-                                        {stats.recentRedemptions.length === 0 && <tr><td colSpan="3" className="text-center p-4">Sin datos</td></tr>}
+                                        {stats.recentRedemptions.length === 0 && <tr><td colSpan="3" className="text-center p-4">Sin canjes recientes</td></tr>}
                                     </tbody>
                                 </table>
                             </div>
@@ -299,12 +342,15 @@ const AdminDashboard = () => {
                         </div>
                     )}
 
+
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         {/* Business Rules */}
-                        <div className="entry-card h-fit">
-                            <h3 className="entry-form-title mb-4 flex items-center gap-2"><Settings size={20} /> Reglas del Negocio</h3>
+                        <div className="card h-fit">
+                            <h3 className="section-title flex items-center gap-2" style={{ fontSize: '1.2rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
+                                <Settings size={20} /> Reglas del Negocio
+                            </h3>
                             <form onSubmit={handleSaveConfig}>
-                                <div className="input-group">
+                                <div className="mb-4">
                                     <label className="input-label">Nombre del Kiosko</label>
                                     <input
                                         type="text"
@@ -314,7 +360,7 @@ const AdminDashboard = () => {
                                         disabled={dbError}
                                     />
                                 </div>
-                                <div className="input-group">
+                                <div className="mb-4">
                                     <label className="input-label">Tasa de Puntos</label>
                                     <input
                                         type="number"
@@ -326,39 +372,65 @@ const AdminDashboard = () => {
                                     />
                                 </div>
 
-                                <div className="input-group">
+                                <div className="mb-4">
                                     <label className="input-label">Tema de la Aplicación</label>
                                     <div className="flex gap-3">
                                         <button
                                             type="button"
                                             onClick={setLightTheme}
-                                            className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 transition-all ${theme === 'light'
-                                                ? 'border-blue-500 bg-blue-50 text-blue-700'
-                                                : 'border-gray-300 bg-white text-gray-600 hover:border-gray-400'
-                                                }`}
+                                            style={{
+                                                flex: 1,
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                gap: '8px',
+                                                padding: '12px',
+                                                borderRadius: '8px',
+                                                border: theme === 'light' ? '2px solid var(--primary)' : '1px solid var(--border-color)',
+                                                background: theme === 'light' ? 'var(--primary-light)' : 'white',
+                                                color: theme === 'light' ? 'var(--primary)' : 'var(--text-secondary)',
+                                                cursor: 'pointer'
+                                            }}
                                         >
                                             <Sun size={20} />
-                                            <span className="font-semibold">Claro</span>
+                                            <span style={{ fontWeight: '600' }}>Claro</span>
                                         </button>
                                         <button
                                             type="button"
                                             onClick={setDarkTheme}
-                                            className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 transition-all ${theme === 'dark'
-                                                ? 'border-blue-500 bg-blue-900 text-blue-100'
-                                                : 'border-gray-300 bg-white text-gray-600 hover:border-gray-400'
-                                                }`}
+                                            style={{
+                                                flex: 1,
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                gap: '8px',
+                                                padding: '12px',
+                                                borderRadius: '8px',
+                                                border: theme === 'dark' ? '2px solid var(--primary)' : '1px solid var(--border-color)',
+                                                background: theme === 'dark' ? '#1e293b' : 'white',
+                                                color: theme === 'dark' ? 'white' : 'var(--text-secondary)',
+                                                cursor: 'pointer'
+                                            }}
                                         >
                                             <Moon size={20} />
-                                            <span className="font-semibold">Oscuro</span>
+                                            <span style={{ fontWeight: '600' }}>Oscuro</span>
                                         </button>
                                     </div>
-                                    <p className="text-xs text-gray-500 mt-2">
+                                    <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
                                         Cambia el tema visual de toda la aplicación
                                     </p>
                                 </div>
 
                                 {msg.text && (
-                                    <div className={`p-3 rounded mb-4 text-sm font-bold ${msg.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                    <div style={{
+                                        padding: '12px',
+                                        borderRadius: '8px',
+                                        marginBottom: '1rem',
+                                        fontSize: '0.9rem',
+                                        fontWeight: '600',
+                                        backgroundColor: msg.type === 'success' ? 'var(--success-light)' : 'var(--error-light)',
+                                        color: msg.type === 'success' ? 'var(--success)' : 'var(--error)'
+                                    }}>
                                         {msg.text}
                                     </div>
                                 )}
@@ -371,19 +443,19 @@ const AdminDashboard = () => {
                         </div>
 
                         {/* Prizes Management */}
-                        <div className="entry-card">
-                            <div className="flex justify-between items-center mb-6">
-                                <h3 className="entry-form-title flex items-center gap-2 mb-0"><Gift size={20} /> Gestión de Premios</h3>
+                        <div className="card">
+                            <div className="flex justify-between items-center mb-6" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
+                                <h3 className="section-title flex items-center gap-2 mb-0" style={{ fontSize: '1.2rem', marginBottom: 0 }}><Gift size={20} /> Gestión de Premios</h3>
                                 <button onClick={() => openPrizeModal()} disabled={dbError} className="btn btn-success">
                                     <Plus size={18} /> Nuevo
                                 </button>
                             </div>
 
-                            <div className="max-h-[500px] overflow-y-auto border rounded-xl">
+                            <div className="table-container" style={{ maxHeight: '500px', overflowY: 'auto' }}>
                                 {prizes.length === 0 ? (
                                     <p className="text-center text-gray-400 p-8">No hay premios configurados.</p>
                                 ) : (
-                                    <table className="entry-table">
+                                    <table>
                                         <thead><tr><th>Premio</th><th>Pts</th><th className="text-right">Acciones</th></tr></thead>
                                         <tbody>
                                             {prizes.map(p => (
@@ -391,11 +463,11 @@ const AdminDashboard = () => {
                                                     <td className="font-medium">{p.name}</td>
                                                     <td className="font-bold">{p.points}</td>
                                                     <td className="text-right flex justify-end gap-2">
-                                                        <button onClick={() => openPrizeModal(p)} className="btn-icon text-blue-500" title="Editar">
-                                                            <Edit2 size={18} />
+                                                        <button onClick={() => openPrizeModal(p)} className="btn btn-secondary" style={{ padding: '8px' }} title="Editar">
+                                                            <Edit2 size={16} color="var(--info)" />
                                                         </button>
-                                                        <button onClick={() => confirmDelete(p)} className="btn-icon text-red-400" title="Eliminar">
-                                                            <Trash2 size={18} />
+                                                        <button onClick={() => confirmDelete(p)} className="btn btn-secondary" style={{ padding: '8px' }} title="Eliminar">
+                                                            <Trash2 size={16} color="var(--error)" />
                                                         </button>
                                                     </td>
                                                 </tr>
@@ -412,7 +484,7 @@ const AdminDashboard = () => {
             {/* Prize Modal (Add/Edit) */}
             {showPrizeModal && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="entry-card w-full max-w-md animate-fade-in p-0 overflow-hidden">
+                    <div className="card w-full max-w-md animate-fade-in p-0 overflow-hidden">
                         <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
                             <h3 className="text-lg font-bold text-gray-800">{currentPrize.id ? 'Editar Premio' : 'Nuevo Premio'}</h3>
                             <button onClick={() => setShowPrizeModal(false)} className="text-gray-400 hover:text-gray-600">
@@ -420,7 +492,7 @@ const AdminDashboard = () => {
                             </button>
                         </div>
                         <form onSubmit={handleSavePrize} className="p-6">
-                            <div className="input-group">
+                            <div className="mb-4">
                                 <label className="input-label">Seleccionar Producto / Premio</label>
                                 <div className="relative">
                                     <select
@@ -451,7 +523,7 @@ const AdminDashboard = () => {
                                 </div>
                             </div>
 
-                            <div className="input-group">
+                            <div className="mb-4">
                                 <label className="input-label">Costo en Puntos</label>
                                 <input
                                     type="number"
@@ -480,7 +552,7 @@ const AdminDashboard = () => {
             {/* Delete Confirmation Modal */}
             {showDeleteModal && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="entry-card w-full max-w-sm animate-fade-in p-6 text-center">
+                    <div className="card w-full max-w-sm animate-fade-in p-6 text-center">
                         <div className="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
                             <AlertTriangle size={24} />
                         </div>
@@ -490,7 +562,7 @@ const AdminDashboard = () => {
                             <button onClick={() => setShowDeleteModal(false)} className="btn btn-secondary flex-1">
                                 Cancelar
                             </button>
-                            <button onClick={handleDeletePrize} className="btn btn-danger-solid flex-1">
+                            <button onClick={handleDeletePrize} className="btn btn-danger flex-1">
                                 Eliminar
                             </button>
                         </div>

@@ -1,7 +1,6 @@
-
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { User, Lock, Eye, EyeOff, Sparkles } from 'lucide-react';
+import { User, Lock, Eye, EyeOff, Sparkles, AlertCircle, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
@@ -38,46 +37,70 @@ const Login = () => {
     };
 
     return (
-        <div className="login-page">
-            <div className="login-dots"></div>
-            <div className="login-card animate-fade-in">
-                {/* Logo Area */}
-                <div className="login-logo-container">
-                    <div className="login-logo-circle">
-                        <div className="login-logo-icon">
-                            <Sparkles size={40} strokeWidth={2.5} />
-                            <div className="star-badge">★</div>
-                        </div>
-                    </div>
+        <div className="auth-container">
+            <div className="auth-card">
+                <div style={{
+                    width: '100%',
+                    marginBottom: '2rem',
+                    borderRadius: 'var(--radius-lg)',
+                    overflow: 'hidden',
+                    boxShadow: 'var(--shadow-sm)'
+                }}>
+                    <img
+                        src="/src/assets/Banner_Login.png"
+                        alt="Bienvenido"
+                        style={{
+                            width: '100%',
+                            height: 'auto',
+                            display: 'block'
+                        }}
+                    />
                 </div>
 
-                <h1 className="login-title">
-                    KIOSKO <span className="title-accent">CLUB</span>
-                </h1>
+                <div className="auth-header" style={{ marginTop: 0 }}>
+                    <h1 className="auth-title">Kiosko Club</h1>
+                    <p className="auth-subtitle">
+                        {isSignUp ? 'Crea una cuenta para empezar' : 'Bienvenido de nuevo'}
+                    </p>
+                </div>
 
-                {isSignUp && (
-                    <h2 className="text-xl font-bold mb-6 text-gray-700">Crear Cuenta</h2>
-                )}
+                <form className="auth-form" onSubmit={handleSubmit}>
+                    {error && (
+                        <div className="error-message">
+                            <div className="flex items-center justify-center gap-2">
+                                <AlertCircle size={18} />
+                                <span>{error}</span>
+                            </div>
+                        </div>
+                    )}
 
-                <form className="login-form" onSubmit={handleSubmit}>
-                    <div className="login-input-wrapper">
+                    {successMsg && (
+                        <div className="success-message">
+                            <div className="flex items-center justify-center gap-2">
+                                <CheckCircle size={18} />
+                                <span>{successMsg}</span>
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="input-group-icon">
                         <User className="input-icon" size={20} />
                         <input
                             type="email"
-                            placeholder="Usuario"
-                            className="login-input"
+                            placeholder="Correo electrónico"
+                            className="input-field"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
                         />
                     </div>
 
-                    <div className="login-input-wrapper">
+                    <div className="input-group-icon">
                         <Lock className="input-icon" size={20} />
                         <input
                             type={showPassword ? "text" : "password"}
                             placeholder="Contraseña"
-                            className="login-input"
+                            className="input-field"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
@@ -86,28 +109,49 @@ const Login = () => {
                             type="button"
                             className="password-toggle"
                             onClick={() => setShowPassword(!showPassword)}
+                            tabIndex="-1"
                         >
                             {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                         </button>
                     </div>
 
-                    {error && <p className="login-error">{error}</p>}
-                    {successMsg && <p className="text-green-600 text-sm mb-4 text-center">{successMsg}</p>}
-
-                    <button type="submit" className="login-submit-btn" disabled={loading}>
-                        {loading ? 'PROCESANDO...' : (isSignUp ? 'REGISTRARSE' : 'ACCEDER')}
+                    <button
+                        type="submit"
+                        className="btn btn-primary w-full"
+                        disabled={loading}
+                        style={{ height: '48px', fontSize: '1rem' }}
+                    >
+                        {loading ? 'Procesando...' : (isSignUp ? 'Crear Cuenta' : 'Iniciar Sesión')}
                     </button>
                 </form>
 
-                <div className="login-register-toggle">
-                    <button
-                        onClick={() => setIsSignUp(!isSignUp)}
-                    >
-                        {isSignUp ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Regístrate aquí'}
-                    </button>
+                <div className="auth-divider">
+                    <span>O</span>
                 </div>
 
-                {!isSignUp && <a href="#" className="forgot-password">¿Olvidaste tu contraseña?</a>}
+                <div className="auth-footer">
+                    <p>
+                        {isSignUp ? '¿Ya tienes una cuenta? ' : '¿No tienes cuenta? '}
+                        <button
+                            className="link-primary"
+                            onClick={() => {
+                                setIsSignUp(!isSignUp);
+                                setError('');
+                                setSuccessMsg('');
+                            }}
+                        >
+                            {isSignUp ? 'Inicia Sesión' : 'Regístrate'}
+                        </button>
+                    </p>
+
+                    {!isSignUp && (
+                        <p style={{ marginTop: '1rem' }}>
+                            <a href="#" className="link-primary" style={{ fontSize: '0.85rem', color: 'var(--text-tertiary)' }}>
+                                ¿Olvidaste tu contraseña?
+                            </a>
+                        </p>
+                    )}
+                </div>
             </div>
         </div>
     );

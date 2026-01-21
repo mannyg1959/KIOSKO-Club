@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { Package, Plus } from 'lucide-react';
+import { Package, Plus, List } from 'lucide-react';
 
 const Products = () => {
     const [formData, setFormData] = useState({ name: '', price: '', image_url: '' });
@@ -39,100 +39,104 @@ const Products = () => {
     };
 
     return (
-        <div className="entry-container">
-            <div className="entry-header">
-                <div className="entry-title-group">
-                    <h2 className="entry-title">Registrar Producto</h2>
-                    <p className="entry-subtitle">Añade nuevos productos al catálogo</p>
-                </div>
-                <Link
-                    to="/products-list"
-                    className="btn btn-primary"
-                >
-                    <Package size={18} />
-                    Ver Productos
-                </Link>
-            </div>
-
-            <div className="entry-card" style={{ maxWidth: '600px' }}>
-                <h3 className="entry-form-title">Datos del Producto</h3>
-
-                {error && (
-                    <div style={{
-                        background: 'rgba(255, 0, 100, 0.1)',
-                        border: '1px solid rgba(255, 0, 100, 0.3)',
-                        padding: '0.75rem',
-                        borderRadius: '8px',
-                        marginBottom: '1rem',
-                        color: '#ff0066'
-                    }}>
-                        {error}
-                    </div>
-                )}
-
-                {success && (
-                    <div style={{
-                        background: 'rgba(0, 255, 163, 0.1)',
-                        border: '1px solid rgba(0, 255, 163, 0.3)',
-                        padding: '0.75rem',
-                        borderRadius: '8px',
-                        marginBottom: '1rem',
-                        color: 'var(--neon-green)'
-                    }}>
-                        ✓ Producto creado exitosamente
-                    </div>
-                )}
-
-                <form onSubmit={handleSubmit}>
-                    <div className="input-group">
-                        <label className="input-label">Nombre del Producto *</label>
-                        <input
-                            type="text"
-                            placeholder="Ej: Coca Cola 500ml"
-                            className="input-field"
-                            value={formData.name}
-                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                            required
-                        />
-                    </div>
-
-                    <div className="input-group">
-                        <label className="input-label">Precio ($) *</label>
-                        <input
-                            type="number"
-                            step="0.01"
-                            placeholder="0.00"
-                            className="input-field"
-                            value={formData.price}
-                            onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                            required
-                        />
-                    </div>
-
-                    <div className="input-group">
-                        <label className="input-label">URL de Imagen (Opcional)</label>
-                        <input
-                            type="url"
-                            placeholder="https://ejemplo.com/imagen.jpg"
-                            className="input-field"
-                            value={formData.image_url}
-                            onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                        />
-                        <p style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginTop: '0.5rem' }}>
-                            Puedes agregar una imagen del producto para usarla en ofertas
+        <div className="flex flex-col gap-6">
+            {/* Main Registration Card */}
+            <div className="card" style={{ maxWidth: '700px', margin: '0 auto', width: '100%' }}>
+                {/* Header */}
+                <div className="flex justify-between items-start mb-8">
+                    <div>
+                        <h2 style={{ fontSize: '1.75rem', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
+                            Registrar Producto
+                        </h2>
+                        <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
+                            Añade nuevos productos al catálogo
                         </p>
                     </div>
+                    <Link to="/products-list" className="btn btn-primary">
+                        <List size={20} />
+                        Ver Productos
+                    </Link>
+                </div>
 
-                    <button
-                        type="submit"
-                        className="btn btn-success"
-                        style={{ marginTop: '1rem', width: '100%' }}
-                        disabled={loading}
-                    >
-                        <Plus size={18} />
-                        {loading ? 'Guardando...' : 'Agregar Producto'}
-                    </button>
-                </form>
+                {/* Form Section */}
+                <div style={{ marginBottom: '2rem' }}>
+                    <h3 style={{ fontSize: '1.25rem', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '1.5rem' }}>
+                        Datos del Producto
+                    </h3>
+
+                    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+                        {/* Success Message */}
+                        {success && (
+                            <div className="success-message mb-4">
+                                ✓ Producto creado exitosamente
+                            </div>
+                        )}
+
+                        {/* Error Message */}
+                        {error && (
+                            <div className="error-message mb-4">
+                                {error}
+                            </div>
+                        )}
+
+                        {/* Product Name */}
+                        <div className="mb-4">
+                            <label className="input-label">Nombre del Producto *</label>
+                            <input
+                                type="text"
+                                placeholder="Ej: Coca Cola 500ml"
+                                className="input-field"
+                                value={formData.name}
+                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                required
+                            />
+                        </div>
+
+                        {/* Price */}
+                        <div className="mb-4">
+                            <label className="input-label">Precio ($) *</label>
+                            <input
+                                type="number"
+                                step="0.01"
+                                placeholder="0.00"
+                                className="input-field"
+                                value={formData.price}
+                                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                                required
+                            />
+                        </div>
+
+                        {/* Image URL */}
+                        <div className="mb-4">
+                            <label className="input-label">URL de Imagen (Opcional)</label>
+                            <input
+                                type="url"
+                                placeholder="https://ejemplo.com/imagen.jpg"
+                                className="input-field"
+                                value={formData.image_url}
+                                onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                            />
+                            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
+                                Puedes agregar una imagen del producto para usarla en ofertas
+                            </p>
+                        </div>
+
+                        {/* Submit Button */}
+                        <button
+                            type="submit"
+                            className="btn btn-primary w-full"
+                            style={{ height: '48px', fontSize: '1rem', marginTop: '1rem' }}
+                            disabled={loading}
+                        >
+                            {loading ? 'Guardando...' : (
+                                <>
+                                    <Plus size={20} />
+                                    Agregar Producto
+                                </>
+                            )}
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     );
