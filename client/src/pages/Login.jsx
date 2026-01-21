@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { User, Lock, Eye, EyeOff, Sparkles, AlertCircle, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import BannerLogin from '../assets/Banner_Login.png';
 
 const Login = () => {
     const [isSignUp, setIsSignUp] = useState(false);
@@ -47,7 +48,7 @@ const Login = () => {
                     boxShadow: 'var(--shadow-sm)'
                 }}>
                     <img
-                        src="/src/assets/Banner_Login.png"
+                        src={BannerLogin}
                         alt="Bienvenido"
                         style={{
                             width: '100%',

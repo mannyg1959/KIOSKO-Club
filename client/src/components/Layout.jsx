@@ -35,19 +35,20 @@ const Layout = ({ children }) => {
 
     return (
         <div className="app-container">
+            {/* Mobile Sidebar Overlay */}
+            {isSidebarOpen && (
+                <div
+                    className="sidebar-overlay"
+                    onClick={closeSidebar}
+                />
+            )}
+
             {/* Mobile Header */}
-            <div className="mobile-header" style={{
-                display: 'none', // Oculto por defecto en desktop, necesitaría media queries en CSS para mostrarlo
-                padding: '1rem',
-                borderBottom: '1px solid var(--border-color)',
-                background: 'white',
-                alignItems: 'center',
-                justifyContent: 'space-between'
-            }}>
-                <button onClick={toggleSidebar} style={{ background: 'none', border: 'none' }}>
+            <div className="mobile-header">
+                <button onClick={toggleSidebar} className="menu-toggle-btn">
                     <Menu size={24} />
                 </button>
-                <span style={{ fontWeight: 'bold' }}>KIOSKO Club</span>
+                <span className="mobile-brand">KIOSKO Club</span>
             </div>
 
             {/* Sidebar */}

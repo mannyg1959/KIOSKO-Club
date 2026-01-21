@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { executeWithRetry, handleSupabaseError } from '../lib/supabaseHelpers';
 import '../styles/home.css';
+import Banner01 from '../assets/Banner_01.png';
 
 const Home = () => {
     const { profile } = useAuth();
@@ -17,6 +18,24 @@ const Home = () => {
     const [userDisplayName, setUserDisplayName] = useState('Usuario');
     const [error, setError] = useState(null);
     const [offersError, setOffersError] = useState(null);
+    const [itemsPerPage, setItemsPerPage] = useState(4);
+
+    // Responsive items per page
+    useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth < 640) {
+                setItemsPerPage(1);
+            } else if (window.innerWidth < 1024) {
+                setItemsPerPage(2);
+            } else {
+                setItemsPerPage(4);
+            }
+        };
+
+        handleResize(); // Initial check
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     // Datos del usuario
     const points = profile?.client?.points_balance || 0;
@@ -202,7 +221,7 @@ const Home = () => {
     return (
         <div className="flex flex-col gap-8">
             {/* Header de Bienvenida con Puntos + Banner */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '1rem', height: '180px' }}>
+            <div className="home-welcome-header">
                 {/* Tarjeta de Bienvenida */}
                 <div className="card" style={{
                     background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%)',
@@ -232,7 +251,7 @@ const Home = () => {
                     height: '100%'
                 }}>
                     <img
-                        src="/src/assets/Banner_01.png"
+                        src={Banner01}
                         alt="K-Point - Acumula, Canjea y Sonríe"
                         style={{
                             width: '100%',
@@ -257,7 +276,7 @@ const Home = () => {
                 ) : (
                     <div style={{ position: 'relative' }}>
                         {/* Botón Anterior */}
-                        {offers.length > 4 && (
+                        {offers.length > itemsPerPage && (
                             <button
                                 onClick={handlePrevSlide}
                                 style={{
@@ -298,7 +317,7 @@ const Home = () => {
                                 display: 'flex',
                                 gap: '1rem',
                                 transition: 'transform 0.5s ease-in-out',
-                                transform: `translateX(calc(-${currentSlide * (100 / 4)}% - ${currentSlide * 0.25}rem))`
+                                transform: `translateX(calc(-${currentSlide * (100 / itemsPerPage)}% - ${currentSlide * (16 / itemsPerPage)}px))`
                             }}>
                                 {offers.map((offer) => (
                                     <div key={offer.id} style={{
@@ -309,7 +328,7 @@ const Home = () => {
                                         flexDirection: 'column',
                                         alignItems: 'center',
                                         textAlign: 'center',
-                                        minWidth: 'calc(25% - 0.75rem)',
+                                        minWidth: `calc(${100 / itemsPerPage}% - ${(16 * (itemsPerPage - 1)) / itemsPerPage}px)`,
                                         flexShrink: 0
                                     }}>
                                         <div style={{
@@ -352,7 +371,7 @@ const Home = () => {
                         </div>
 
                         {/* Botón Siguiente */}
-                        {offers.length > 4 && (
+                        {offers.length > itemsPerPage && (
                             <button
                                 onClick={handleNextSlide}
                                 style={{
@@ -388,7 +407,7 @@ const Home = () => {
                         )}
 
                         {/* Indicadores de posición */}
-                        {offers.length > 4 && (
+                        {offers.length > itemsPerPage && (
                             <div style={{
                                 display: 'flex',
                                 justifyContent: 'center',

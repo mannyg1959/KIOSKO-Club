@@ -434,6 +434,18 @@ tr:hover td {
     grid-template-columns: repeat(4, 1fr);
 }
 
+/* === RESPONSIVE LAYOUT & SIDEBAR === */
+
+/* Elementos móviles ocultos por defecto en Desktop */
+.mobile-header {
+    display: none;
+}
+
+.sidebar-overlay {
+    display: none;
+}
+
+/* Ajustes para tablet/móvil pequeños */
 @media (max-width: 1024px) {
     .grid-cols-4 {
         grid-template-columns: repeat(2, 1fr);
@@ -444,27 +456,117 @@ tr:hover td {
     }
 }
 
-@media (max-width: 640px) {
+/* Ajustes principales para Móvil (< 768px) */
+@media (max-width: 768px) {
 
+    /* Layout Switch */
+    .app-container {
+        flex-direction: column;
+        min-height: 100vh;
+    }
+
+    /* Mobile Header Visible */
+    .mobile-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem 1.5rem;
+        background: var(--bg-surface);
+        border-bottom: 1px solid var(--border-color);
+        position: sticky;
+        top: 0;
+        z-index: 40;
+        width: 100%;
+    }
+
+    .menu-toggle-btn {
+        background: transparent;
+        border: none;
+        padding: 4px;
+        color: var(--text-primary);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .mobile-brand {
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: var(--text-primary);
+    }
+
+    /* Sidebar Off-Canvas */
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        width: 280px;
+        /* Un poco más ancho para tacto */
+        transform: translateX(-100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 100;
+        /* Por encima de todo */
+        box-shadow: var(--shadow-xl);
+    }
+
+    .sidebar.open {
+        transform: translateX(0);
+    }
+
+    /* Overlay */
+    .sidebar-overlay {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background-color: rgba(15, 23, 42, 0.5);
+        /* Backdrop oscuro */
+        backdrop-filter: blur(2px);
+        z-index: 90;
+        /* Debajo del sidebar, encima del contenido */
+        animation: fadeIn 0.2s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    /* Main Content adjustments */
+    .main-content {
+        width: 100%;
+        padding: var(--spacing-md);
+        /* Menos padding en móvil */
+    }
+
+    /* Grids responsive */
     .grid-cols-2,
     .grid-cols-3,
     .grid-cols-4 {
         grid-template-columns: 1fr;
     }
 
-    .app-container {
-        flex-direction: column;
+    /* Ajustes generales de UI para móvil */
+    h1 {
+        font-size: 1.75rem;
     }
 
-    .sidebar {
-        width: 100%;
-        height: auto;
-        position: relative;
-        border-right: none;
-        border-bottom: 1px solid var(--border-color);
+    h2 {
+        font-size: 1.25rem;
+    }
+
+    .auth-card {
+        padding: 2rem 1.5rem;
     }
 }
 
+/* === UTILITIES === */
 .flex {
     display: flex;
 }
