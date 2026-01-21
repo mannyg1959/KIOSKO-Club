@@ -235,20 +235,20 @@ const Home = () => {
             {/* Header de Bienvenida con Puntos */}
             <div style={{
                 textAlign: 'left',
-                padding: '2rem',
+                padding: '1rem 1.5rem',
                 background: 'rgb(94, 29, 117)',
                 border: '1px solid rgba(255, 255, 255, 0.1)',
                 borderRadius: '20px',
-                marginBottom: '2rem',
+                marginBottom: '1.5rem',
                 boxShadow: '0 8px 32px rgba(94, 29, 117, 0.4)'
             }}>
-                <h1 style={{ textAlign: 'left', color: '#ffffff', fontSize: '1.5rem', fontWeight: '600', marginBottom: '1rem' }}>
+                <h1 style={{ textAlign: 'left', color: '#ffffff', fontSize: '1.125rem', fontWeight: '600', marginBottom: '0.5rem' }}>
                     Bienvenido: <span style={{ color: 'rgb(40, 227, 3)', fontWeight: 'bold' }}>
                         {userDisplayName}
                     </span>
                 </h1>
-                <div style={{ textAlign: 'left', color: '#ffffff', fontSize: '1.125rem' }}>
-                    Total puntos acumulados: <span style={{ color: 'rgb(40, 227, 3)', fontSize: '2rem', fontWeight: 'bold' }}>
+                <div style={{ textAlign: 'left', color: '#ffffff', fontSize: '1rem' }}>
+                    Total puntos acumulados: <span style={{ color: 'rgb(40, 227, 3)', fontSize: '1.5rem', fontWeight: 'bold' }}>
                         {points} Pts
                     </span>
                 </div>
@@ -257,7 +257,7 @@ const Home = () => {
 
             {/* Carrusel de Ofertas */}
             <div className="offers-section">
-                <h2 className="section-title">Combos y Productos en OFERTA !!</h2>
+                <h2 className="section-title" style={{ fontSize: '1.25rem', marginBottom: '0.75rem' }}>Combos y Productos en OFERTA !!</h2>
 
                 {loadingOffers ? (
                     <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-dim)' }}>
@@ -309,36 +309,36 @@ const Home = () => {
                         <div className="carousel-wrapper" style={{
                             position: 'relative',
                             overflow: 'hidden',
-                            padding: '2rem 0'
+                            padding: '1rem 0'
                         }}>
                             <div className="carousel-scroll" style={{
                                 display: 'flex',
-                                gap: '1.5rem',
+                                gap: '1rem',
                                 transition: 'transform 0.5s ease-in-out',
-                                transform: `translateX(-${currentSlide * 180}px)`
+                                transform: `translateX(-${currentSlide * 110}px)`
                             }}>
                                 {offers.map((offer) => (
                                     <div
                                         key={offer.id}
                                         className="carousel-item"
                                         style={{
-                                            flex: '0 0 150px',
+                                            flex: '0 0 100px',
                                             display: 'flex',
                                             flexDirection: 'column',
-                                            gap: '0.75rem',
+                                            gap: '0.5rem',
                                             alignItems: 'center'
                                         }}
                                     >
                                         {/* Contenedor de imagen con fondo blanco */}
                                         <div style={{
-                                            width: '150px',
-                                            height: '150px',
+                                            width: '100px',
+                                            height: '100px',
                                             background: 'white',
-                                            borderRadius: '20px',
+                                            borderRadius: '15px',
                                             display: 'flex',
                                             alignItems: 'center',
                                             justifyContent: 'center',
-                                            padding: '1rem',
+                                            padding: '0.75rem',
                                             boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)'
                                         }}>
                                             {offer.image_url ? (
@@ -365,32 +365,41 @@ const Home = () => {
                                                 gap: '0.5rem',
                                                 color: '#ccc'
                                             }}>
-                                                <Package size={40} />
-                                                <p style={{ fontSize: '0.75rem', margin: 0 }}>Sin imagen</p>
+                                                <Package size={30} />
+                                                <p style={{ fontSize: '0.625rem', margin: 0 }}>Sin imagen</p>
                                             </div>
                                         </div>
 
                                         {/* Información debajo */}
                                         <div style={{
-                                            width: '150px',
-                                            textAlign: 'left'
+                                            width: '100px',
+                                            textAlign: 'left',
+                                            minHeight: '40px',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            justifyContent: 'space-between'
                                         }}>
                                             <h3 style={{
                                                 margin: 0,
-                                                fontSize: '0.875rem',
+                                                fontSize: offer.name.length > 40 ? '0.625rem' :
+                                                    offer.name.length > 25 ? '0.6875rem' : '0.75rem',
                                                 fontWeight: '600',
                                                 color: 'var(--text-pure)',
                                                 marginBottom: '0.25rem',
                                                 lineHeight: 1.2,
                                                 overflow: 'hidden',
+                                                display: '-webkit-box',
+                                                WebkitLineClamp: offer.name.length > 40 ? 4 :
+                                                    offer.name.length > 25 ? 3 : 2,
+                                                WebkitBoxOrient: 'vertical',
                                                 textOverflow: 'ellipsis',
-                                                whiteSpace: 'nowrap'
+                                                wordBreak: 'break-word'
                                             }}>
                                                 {offer.name}
                                             </h3>
                                             <p style={{
                                                 margin: 0,
-                                                fontSize: '0.875rem',
+                                                fontSize: '0.75rem',
                                                 fontWeight: '600',
                                                 color: 'var(--neon-green)',
                                                 textShadow: '0 0 10px rgba(0, 255, 163, 0.5)'
