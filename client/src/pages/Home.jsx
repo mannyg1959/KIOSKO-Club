@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Gift, Package, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -71,134 +71,114 @@ const Home = () => {
     }, [profile]);
 
     // Fetch últimos movimientos del cliente
-    useEffect(() => {
-        let isMounted = true; // Para evitar actualizaciones de estado en componentes desmontados
+    const fetchMovements = useCallback(async () => {
+        console.log('[fetchMovements] Iniciando...', { hasProfile: !!profile, hasClientId: !!profile?.client?.id });
 
-        const fetchMovements = async () => {
-            console.log('[fetchMovements] Iniciando...', { hasProfile: !!profile, hasClientId: !!profile?.client?.id });
+        if (!profile?.client?.id) {
+            console.log('[fetchMovements] No hay client_id, terminando');
+            setLoading(false);
+            return;
+        }
 
-            if (!profile?.client?.id) {
-                console.log('[fetchMovements] No hay client_id, terminando');
-                if (isMounted) setLoading(false);
-                return;
-            }
+        setLoading(true);
+        setError(null);
 
-            if (isMounted) {
-                setLoading(true);
-                setError(null);
-            }
-
-            try {
-                console.log('[fetchMovements] Obteniendo count...');
-                // Obtener total de movimientos con reintentos
-                const countResult = await executeWithRetry(
-                    () => supabase
-                        .from('sales')
-                        .select('*', { count: 'exact', head: true })
-                        .eq('client_id', profile.client.id),
-                    {
-                        maxRetries: 2,
-                        timeout: 30000 // Reducido a 5 segundos
-                    }
-                );
-
-                console.log('[fetchMovements] Count obtenido:', countResult.count);
-                if (isMounted) setTotalMovements(countResult.count || 0);
-
-                console.log('[fetchMovements] Obteniendo movimientos...');
-                // Obtener últimos 10 movimientos con información del cliente
-                const movementsResult = await executeWithRetry(
-                    () => supabase
-                        .from('sales')
-                        .select(`
-                            id,
-                            amount,
-                            points_earned,
-                            created_at,
-                            items,
-                            clients!sales_client_id_fkey (
-                                name,
-                                phone
-                            )
-                        `)
-                        .eq('client_id', profile.client.id)
-                        .order('created_at', { ascending: false })
-                        .limit(10),
-                    {
-                        maxRetries: 2,
-                        timeout: 30000 // Reducido a 5 segundos
-                    }
-                );
-
-                console.log('[fetchMovements] Movimientos obtenidos:', movementsResult.data?.length || 0);
-                if (isMounted) setRecentMovements(movementsResult.data || []);
-            } catch (error) {
-                console.error('[fetchMovements] Error:', error);
-                const errorMessage = handleSupabaseError(error);
-                if (isMounted) {
-                    setError(errorMessage);
-                    setRecentMovements([]);
+        try {
+            console.log('[fetchMovements] Obteniendo count...');
+            // Obtener total de movimientos con reintentos
+            const countResult = await executeWithRetry(
+                () => supabase
+                    .from('sales')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('client_id', profile.client.id),
+                {
+                    maxRetries: 2,
+                    timeout: 30000
                 }
-            } finally {
-                console.log('[fetchMovements] Finalizando, setLoading(false)');
-                if (isMounted) setLoading(false);
-            }
-        };
+            );
 
-        fetchMovements();
+            console.log('[fetchMovements] Count obtenido:', countResult.count);
+            setTotalMovements(countResult.count || 0);
 
-        return () => {
-            isMounted = false; // Cleanup
-        };
+            console.log('[fetchMovements] Obteniendo movimientos...');
+            // Obtener últimos 10 movimientos con información del cliente
+            const movementsResult = await executeWithRetry(
+                () => supabase
+                    .from('sales')
+                    .select(`
+                        id,
+                        amount,
+                        points_earned,
+                        created_at,
+                        items,
+                        clients!sales_client_id_fkey (
+                            name,
+                            phone
+                        )
+                    `)
+                    .eq('client_id', profile.client.id)
+                    .order('created_at', { ascending: false })
+                    .limit(10),
+                {
+                    maxRetries: 2,
+                    timeout: 30000
+                }
+            );
+
+            console.log('[fetchMovements] Movimientos obtenidos:', movementsResult.data?.length || 0);
+            setRecentMovements(movementsResult.data || []);
+        } catch (error) {
+            console.error('[fetchMovements] Error:', error);
+            const errorMessage = handleSupabaseError(error);
+            setError(errorMessage);
+            setRecentMovements([]);
+        } finally {
+            console.log('[fetchMovements] Finalizando, setLoading(false)');
+            setLoading(false);
+        }
     }, [profile]);
 
-    // Fetch ofertas activas
     useEffect(() => {
-        let isMounted = true;
+        fetchMovements();
+    }, [fetchMovements]);
 
-        const fetchOffers = async () => {
-            console.log('[fetchOffers] Iniciando...');
+    // Fetch ofertas activas
+    const fetchOffers = useCallback(async () => {
+        console.log('[fetchOffers] Iniciando...');
 
-            if (isMounted) {
-                setLoadingOffers(true);
-                setOffersError(null);
-            }
+        setLoadingOffers(true);
+        setOffersError(null);
 
-            try {
-                console.log('[fetchOffers] Obteniendo ofertas...');
-                const result = await executeWithRetry(
-                    () => supabase
-                        .from('offers')
-                        .select('*')
-                        .eq('is_active', true)
-                        .order('created_at', { ascending: false }),
-                    {
-                        maxRetries: 2,
-                        timeout: 30000 // Reducido a 5 segundos
-                    }
-                );
-
-                console.log('[fetchOffers] Ofertas obtenidas:', result.data?.length || 0);
-                if (isMounted) setOffers(result.data || []);
-            } catch (error) {
-                console.error('[fetchOffers] Error:', error);
-                const errorMessage = handleSupabaseError(error);
-                if (isMounted) {
-                    setOffersError(errorMessage);
-                    setOffers([]);
+        try {
+            console.log('[fetchOffers] Obteniendo ofertas...');
+            const result = await executeWithRetry(
+                () => supabase
+                    .from('offers')
+                    .select('*')
+                    .eq('is_active', true)
+                    .order('created_at', { ascending: false }),
+                {
+                    maxRetries: 2,
+                    timeout: 30000
                 }
-            } finally {
-                console.log('[fetchOffers] Finalizando, setLoadingOffers(false)');
-                if (isMounted) setLoadingOffers(false);
-            }
-        };
+            );
 
-        fetchOffers();
-
-        return () => {
-            isMounted = false;
-        };
+            console.log('[fetchOffers] Ofertas obtenidas:', result.data?.length || 0);
+            setOffers(result.data || []);
+        } catch (error) {
+            console.error('[fetchOffers] Error:', error);
+            const errorMessage = handleSupabaseError(error);
+            setOffersError(errorMessage);
+            setOffers([]);
+        } finally {
+            console.log('[fetchOffers] Finalizando, setLoadingOffers(false)');
+            setLoadingOffers(false);
+        }
     }, []);
+
+    useEffect(() => {
+        fetchOffers();
+    }, [fetchOffers]);
 
     const nextSlide = () => {
         setCurrentSlide((prev) => (prev + 1) % offers.length);
@@ -265,7 +245,7 @@ const Home = () => {
                         <p style={{ color: '#ff3b30', marginBottom: '0.5rem', fontWeight: '600' }}>Error al cargar ofertas</p>
                         <p style={{ color: 'var(--text-dim)', fontSize: '0.875rem' }}>{offersError}</p>
                         <button
-                            onClick={() => window.location.reload()}
+                            onClick={fetchOffers}
                             style={{
                                 marginTop: '1rem',
                                 padding: '0.5rem 1rem',
@@ -532,7 +512,7 @@ const Home = () => {
                         <p style={{ color: '#ff3b30', marginBottom: '0.5rem', fontWeight: '600' }}>Error al cargar movimientos</p>
                         <p style={{ color: 'var(--text-dim)', fontSize: '0.875rem' }}>{error}</p>
                         <button
-                            onClick={() => window.location.reload()}
+                            onClick={fetchMovements}
                             style={{
                                 marginTop: '1rem',
                                 padding: '0.5rem 1rem',
