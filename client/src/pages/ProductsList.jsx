@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { executeWithRetry, handleSupabaseError } from '../lib/supabaseHelpers';
 import { Edit2, Trash2, Check, X, ArrowLeft, Package, Image as ImageIcon } from 'lucide-react';
 
 const ProductsList = () => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [saving, setSaving] = useState(false);
     const [editingProduct, setEditingProduct] = useState(null);
     const [editForm, setEditForm] = useState({ name: '', price: '', image_url: '' });
@@ -13,25 +15,50 @@ const ProductsList = () => {
     const [uploadingImage, setUploadingImage] = useState(false);
 
     useEffect(() => {
+        let isMounted = true;
+
+        const fetchProducts = async () => {
+            console.log('[fetchProducts] Iniciando...');
+
+            if (isMounted) {
+                setLoading(true);
+                setError(null);
+            }
+
+            try {
+                console.log('[fetchProducts] Obteniendo productos...');
+                const result = await executeWithRetry(
+                    () => supabase
+                        .from('products')
+                        .select('*')
+                        .order('name'),
+                    {
+                        maxRetries: 2,
+                        timeout: 5000
+                    }
+                );
+
+                console.log('[fetchProducts] Productos obtenidos:', result.data?.length || 0);
+                if (isMounted) setProducts(result.data || []);
+            } catch (err) {
+                console.error('[fetchProducts] Error:', err);
+                const errorMessage = handleSupabaseError(err);
+                if (isMounted) {
+                    setError(errorMessage);
+                    setProducts([]);
+                }
+            } finally {
+                console.log('[fetchProducts] Finalizando, setLoading(false)');
+                if (isMounted) setLoading(false);
+            }
+        };
+
         fetchProducts();
+
+        return () => {
+            isMounted = false;
+        };
     }, []);
-
-    const fetchProducts = async () => {
-        setLoading(true);
-        try {
-            const { data, error } = await supabase
-                .from('products')
-                .select('*')
-                .order('name');
-
-            if (error) throw error;
-            setProducts(data || []);
-        } catch (err) {
-            console.error('Error fetching products:', err);
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const startEdit = (product) => {
         setEditingProduct(product.id);
@@ -219,6 +246,34 @@ const ProductsList = () => {
             {loading ? (
                 <div className="loading-text" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-dim)' }}>
                     Cargando productos...
+                </div>
+            ) : error ? (
+                <div style={{
+                    background: 'rgba(255, 77, 77, 0.1)',
+                    backdropFilter: 'blur(var(--blur-std))',
+                    border: '1px solid rgba(255, 77, 77, 0.3)',
+                    borderRadius: 'var(--radius-lg)',
+                    padding: '2rem',
+                    textAlign: 'center'
+                }}>
+                    <Package size={48} style={{ margin: '0 auto 1rem', opacity: 0.7, color: '#ff4d4d' }} />
+                    <h3 style={{ color: '#ff4d4d', marginBottom: '0.5rem' }}>Error al cargar productos</h3>
+                    <p style={{ color: 'var(--text-dim)', marginBottom: '1.5rem' }}>{error}</p>
+                    <button
+                        onClick={() => window.location.reload()}
+                        style={{
+                            marginTop: '1rem',
+                            padding: '0.5rem 1rem',
+                            background: 'var(--neon-cyan)',
+                            color: 'var(--bg-dark)',
+                            border: 'none',
+                            borderRadius: 'var(--radius-md)',
+                            cursor: 'pointer',
+                            fontWeight: '600'
+                        }}
+                    >
+                        Reintentar
+                    </button>
                 </div>
             ) : products.length === 0 ? (
                 <div className="no-movements" style={{
