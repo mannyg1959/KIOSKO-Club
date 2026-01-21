@@ -200,17 +200,6 @@ const Home = () => {
         };
     }, []);
 
-    // Carrusel automático - 1 oferta a la vez, cada 5 segundos
-    useEffect(() => {
-        if (offers.length === 0) return; // No iniciar si no hay ofertas
-
-        const interval = setInterval(() => {
-            setCurrentSlide((prev) => (prev + 1) % offers.length);
-        }, 5000); // ✅ Cambiado a 5 segundos
-
-        return () => clearInterval(interval);
-    }, [offers.length]);
-
     const nextSlide = () => {
         setCurrentSlide((prev) => (prev + 1) % offers.length);
     };
@@ -411,18 +400,38 @@ const Home = () => {
                                 ))}
                             </div>
 
-                            {/* Botones de navegación */}
-                            {offers.length > 4 && (
+                            {/* Botones de navegación - Siempre visibles */}
+                            {offers.length > 1 && (
                                 <>
                                     <button
                                         className="carousel-btn prev"
                                         onClick={prevSlide}
                                         style={{
                                             position: 'absolute',
-                                            left: '-20px',
+                                            left: '10px',
                                             top: '50%',
                                             transform: 'translateY(-50%)',
-                                            zIndex: 10
+                                            zIndex: 10,
+                                            background: 'rgba(0, 200, 200, 0.9)',
+                                            color: 'white',
+                                            border: 'none',
+                                            borderRadius: '50%',
+                                            width: '40px',
+                                            height: '40px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            cursor: 'pointer',
+                                            boxShadow: '0 4px 12px rgba(0, 200, 200, 0.4)',
+                                            transition: 'all 0.3s ease'
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            e.currentTarget.style.background = 'rgba(0, 220, 220, 1)';
+                                            e.currentTarget.style.transform = 'translateY(-50%) scale(1.1)';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.background = 'rgba(0, 200, 200, 0.9)';
+                                            e.currentTarget.style.transform = 'translateY(-50%) scale(1)';
                                         }}
                                     >
                                         <ChevronLeft size={24} />
@@ -433,10 +442,30 @@ const Home = () => {
                                         onClick={nextSlide}
                                         style={{
                                             position: 'absolute',
-                                            right: '-20px',
+                                            right: '10px',
                                             top: '50%',
                                             transform: 'translateY(-50%)',
-                                            zIndex: 10
+                                            zIndex: 10,
+                                            background: 'rgba(0, 200, 200, 0.9)',
+                                            color: 'white',
+                                            border: 'none',
+                                            borderRadius: '50%',
+                                            width: '40px',
+                                            height: '40px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            cursor: 'pointer',
+                                            boxShadow: '0 4px 12px rgba(0, 200, 200, 0.4)',
+                                            transition: 'all 0.3s ease'
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            e.currentTarget.style.background = 'rgba(0, 220, 220, 1)';
+                                            e.currentTarget.style.transform = 'translateY(-50%) scale(1.1)';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.background = 'rgba(0, 200, 200, 0.9)';
+                                            e.currentTarget.style.transform = 'translateY(-50%) scale(1)';
                                         }}
                                     >
                                         <ChevronRight size={24} />
@@ -445,14 +474,27 @@ const Home = () => {
                             )}
                         </div>
 
-                        {/* Indicadores */}
-                        {offers.length > 4 && (
-                            <div className="carousel-indicators">
-                                {Array.from({ length: Math.ceil(offers.length / 4) }).map((_, index) => (
+                        {/* Indicadores - Siempre visibles si hay más de 1 oferta */}
+                        {offers.length > 1 && (
+                            <div style={{
+                                display: 'flex',
+                                justifyContent: 'center',
+                                gap: '0.5rem',
+                                marginTop: '1rem'
+                            }}>
+                                {offers.map((_, index) => (
                                     <button
                                         key={index}
-                                        className={`indicator ${index === Math.floor(currentSlide / 4) ? 'active' : ''}`}
-                                        onClick={() => setCurrentSlide(index * 4)}
+                                        onClick={() => setCurrentSlide(index)}
+                                        style={{
+                                            width: index === currentSlide ? '24px' : '8px',
+                                            height: '8px',
+                                            borderRadius: '4px',
+                                            border: 'none',
+                                            background: index === currentSlide ? 'rgba(0, 200, 200, 1)' : 'rgba(255, 255, 255, 0.3)',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.3s ease'
+                                        }}
                                     />
                                 ))}
                             </div>
