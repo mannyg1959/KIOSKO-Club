@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { executeWithRetry, handleSupabaseError } from '../lib/supabaseHelpers';
 import { BarChart2, Users, DollarSign, Gift, Settings, Save, Plus, Trash2, Edit2, X, AlertTriangle, Database, Moon, Sun } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -40,27 +41,42 @@ const AdminDashboard = () => {
             today.setHours(0, 0, 0, 0);
 
             // 1. Sales Today
-            const { data: salesData } = await supabase
-                .from('sales')
-                .select('amount')
-                .gte('created_at', today.toISOString());
-            const totalSales = salesData?.reduce((sum, sale) => sum + Number(sale.amount), 0) || 0;
+            const salesResult = await executeWithRetry(
+                () => supabase
+                    .from('sales')
+                    .select('amount')
+                    .gte('created_at', today.toISOString()),
+                { maxRetries: 2, timeout: 5000 }
+            );
+            const totalSales = salesResult.data?.reduce((sum, sale) => sum + Number(sale.amount), 0) || 0;
 
             // 2. Total Clients
-            const { count: clientCount } = await supabase.from('clients').select('*', { count: 'exact', head: true });
+            const clientResult = await executeWithRetry(
+                () => supabase.from('clients').select('*', { count: 'exact', head: true }),
+                { maxRetries: 2, timeout: 5000 }
+            );
 
             // 3. Recent Sales & Redemptions
-            const { data: recentSales } = await supabase.from('sales').select('*, clients(name, phone)').order('created_at', { ascending: false }).limit(5);
-            const { data: recentRedemptions } = await supabase.from('redemptions').select('*, clients(name, phone)').order('created_at', { ascending: false }).limit(5);
+            const recentSalesResult = await executeWithRetry(
+                () => supabase.from('sales').select('*, clients(name, phone)').order('created_at', { ascending: false }).limit(5),
+                { maxRetries: 2, timeout: 5000 }
+            );
+
+            const recentRedemptionsResult = await executeWithRetry(
+                () => supabase.from('redemptions').select('*, clients(name, phone)').order('created_at', { ascending: false }).limit(5),
+                { maxRetries: 2, timeout: 5000 }
+            );
 
             setStats({
                 salesToday: totalSales,
-                totalClients: clientCount || 0,
-                recentSales: recentSales || [],
-                recentRedemptions: recentRedemptions || []
+                totalClients: clientResult.count || 0,
+                recentSales: recentSalesResult.data || [],
+                recentRedemptions: recentRedemptionsResult.data || []
             });
         } catch (error) {
-            console.error('Error dashboard:', error);
+            console.error('[fetchDashboardData] Error:', error);
+            const errorMessage = handleSupabaseError(error);
+            console.error(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -317,8 +333,8 @@ const AdminDashboard = () => {
                                             type="button"
                                             onClick={setLightTheme}
                                             className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 transition-all ${theme === 'light'
-                                                    ? 'border-blue-500 bg-blue-50 text-blue-700'
-                                                    : 'border-gray-300 bg-white text-gray-600 hover:border-gray-400'
+                                                ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                                : 'border-gray-300 bg-white text-gray-600 hover:border-gray-400'
                                                 }`}
                                         >
                                             <Sun size={20} />
@@ -328,8 +344,8 @@ const AdminDashboard = () => {
                                             type="button"
                                             onClick={setDarkTheme}
                                             className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 transition-all ${theme === 'dark'
-                                                    ? 'border-blue-500 bg-blue-900 text-blue-100'
-                                                    : 'border-gray-300 bg-white text-gray-600 hover:border-gray-400'
+                                                ? 'border-blue-500 bg-blue-900 text-blue-100'
+                                                : 'border-gray-300 bg-white text-gray-600 hover:border-gray-400'
                                                 }`}
                                         >
                                             <Moon size={20} />
