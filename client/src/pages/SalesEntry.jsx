@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { executeWithRetry, handleSupabaseError } from '../lib/supabaseHelpers';
 import { ShoppingCart, Search, CheckCircle, Plus, Trash2, QrCode, X } from 'lucide-react';
 import QrScanner from '../components/QrScanner';
 import LoyaltyModal from '../components/LoyaltyModal';
@@ -25,13 +26,27 @@ const SalesEntry = () => {
     }, []);
 
     const fetchProducts = async () => {
-        const { data } = await supabase.from('products').select('*').gt('stock', 0);
-        if (data) setProducts(data);
+        try {
+            const result = await executeWithRetry(
+                () => supabase.from('products').select('*').gt('stock', 0),
+                { maxRetries: 2, timeout: 5000 }
+            );
+            if (result.data) setProducts(result.data);
+        } catch (error) {
+            console.error('[fetchProducts] Error:', handleSupabaseError(error));
+        }
     };
 
     const fetchPrizes = async () => {
-        const { data } = await supabase.from('prizes').select('*').order('points', { ascending: true });
-        if (data) setPrizes(data);
+        try {
+            const result = await executeWithRetry(
+                () => supabase.from('prizes').select('*').order('points', { ascending: true }),
+                { maxRetries: 2, timeout: 5000 }
+            );
+            if (result.data) setPrizes(result.data);
+        } catch (error) {
+            console.error('[fetchPrizes] Error:', handleSupabaseError(error));
+        }
     };
 
     const handleScan = (decodedText) => {

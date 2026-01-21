@@ -6,4 +6,4 @@ Ejecuta npm run dev
 
 Comando Completo (copia y pega):
 cmd
-d: && cd "Google Antigravity App KIOSKO\client" && npm run dev
+d: && cd "Google Antigravity App KIOSKO" && npm run dev
