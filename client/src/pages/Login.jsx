@@ -42,17 +42,19 @@ const Login = () => {
             <div className="auth-card">
                 <div style={{
                     width: '100%',
-                    marginBottom: '2rem',
+                    marginBottom: '1.5rem',
                     borderRadius: 'var(--radius-lg)',
                     overflow: 'hidden',
-                    boxShadow: 'var(--shadow-sm)'
+                    boxShadow: 'var(--shadow-md)',
+                    minHeight: '180px'
                 }}>
                     <img
                         src={BannerLogin}
                         alt="Bienvenido"
                         style={{
                             width: '100%',
-                            height: 'auto',
+                            height: '180px',
+                            objectFit: 'cover',
                             display: 'block'
                         }}
                     />

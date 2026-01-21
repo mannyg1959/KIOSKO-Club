@@ -421,7 +421,9 @@
     }
 
     .home-welcome-header>div:last-child img {
-        object-fit: cover !important;
-        /* Cubrir en móvil para que no quede vacio */
+        object-fit: contain !important;
+        /* Ajustar proporcionalmente en móvil sin recortar */
+        background: #f0f0f0;
+        /* Fondo suave para el espacio vacío */
     }
 }
