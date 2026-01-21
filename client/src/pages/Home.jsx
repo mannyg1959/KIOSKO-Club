@@ -90,12 +90,16 @@ const Home = () => {
         fetchUserName();
     }, [profile]);
 
-    // Fetch últimos movimientos del cliente
+    // Fetch últimos movimientos del cliente o todas las ventas (admin)
     const fetchMovements = useCallback(async () => {
-        console.log('[fetchMovements] Iniciando...', { hasProfile: !!profile, hasClientId: !!profile?.client?.id });
+        console.log('[fetchMovements] Iniciando...', {
+            hasProfile: !!profile,
+            hasClientId: !!profile?.client?.id,
+            isAdmin: profile?.role === 'admin'
+        });
 
-        if (!profile?.client?.id) {
-            console.log('[fetchMovements] No hay client_id, terminando');
+        if (!profile) {
+            console.log('[fetchMovements] No hay profile, terminando');
             setLoading(false);
             return;
         }
@@ -104,13 +108,22 @@ const Home = () => {
         setError(null);
 
         try {
+            const isAdmin = profile.role === 'admin';
+            const clientId = profile.client?.id;
+
             console.log('[fetchMovements] Obteniendo count...');
-            // Obtener total de movimientos con reintentos
+
+            // Build count query based on role
+            let countQuery = supabase
+                .from('sales')
+                .select('*', { count: 'exact', head: true });
+
+            if (!isAdmin && clientId) {
+                countQuery = countQuery.eq('client_id', clientId);
+            }
+
             const countResult = await executeWithRetry(
-                () => supabase
-                    .from('sales')
-                    .select('*', { count: 'exact', head: true })
-                    .eq('client_id', profile.client.id),
+                () => countQuery,
                 {
                     maxRetries: 2,
                     timeout: 30000
@@ -121,24 +134,30 @@ const Home = () => {
             setTotalMovements(countResult.count || 0);
 
             console.log('[fetchMovements] Obteniendo movimientos...');
-            // Obtener últimos 10 movimientos con información del cliente
+
+            // Build movements query based on role
+            let movementsQuery = supabase
+                .from('sales')
+                .select(`
+                    id,
+                    amount,
+                    points_earned,
+                    created_at,
+                    items,
+                    clients!sales_client_id_fkey (
+                        name,
+                        phone
+                    )
+                `)
+                .order('created_at', { ascending: false })
+                .limit(10);
+
+            if (!isAdmin && clientId) {
+                movementsQuery = movementsQuery.eq('client_id', clientId);
+            }
+
             const movementsResult = await executeWithRetry(
-                () => supabase
-                    .from('sales')
-                    .select(`
-                        id,
-                        amount,
-                        points_earned,
-                        created_at,
-                        items,
-                        clients!sales_client_id_fkey (
-                            name,
-                            phone
-                        )
-                    `)
-                    .eq('client_id', profile.client.id)
-                    .order('created_at', { ascending: false })
-                    .limit(10),
+                () => movementsQuery,
                 {
                     maxRetries: 2,
                     timeout: 30000
@@ -146,6 +165,7 @@ const Home = () => {
             );
 
             console.log('[fetchMovements] Movimientos obtenidos:', movementsResult.data?.length || 0);
+            console.log('[fetchMovements] Datos:', movementsResult.data);
             setRecentMovements(movementsResult.data || []);
         } catch (error) {
             console.error('[fetchMovements] Error:', error);
@@ -495,6 +515,7 @@ const Home = () => {
                             <thead>
                                 <tr>
                                     <th>DETALLE</th>
+                                    {profile?.role === 'admin' && <th>CLIENTE</th>}
                                     <th className="text-right">MONTO</th>
                                     <th className="text-right">HORA</th>
                                 </tr>
@@ -504,8 +525,18 @@ const Home = () => {
                                     <tr key={movement.id}>
                                         <td className="font-medium">
                                             Compra en Kiosko
-                                            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Ticket #{movement.id.slice(0, 8)}</div>
+                                            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                                                Ticket #{movement.id.slice(0, 8)}
+                                            </div>
                                         </td>
+                                        {profile?.role === 'admin' && (
+                                            <td style={{ fontWeight: '500' }}>
+                                                {movement.clients?.name || 'N/A'}
+                                                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                                                    {movement.clients?.phone || ''}
+                                                </div>
+                                            </td>
+                                        )}
                                         <td className="text-right font-bold" style={{ color: 'var(--success)' }}>
                                             ${parseFloat(movement.amount || 0).toFixed(2)}
                                         </td>
