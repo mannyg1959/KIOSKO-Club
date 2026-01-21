@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { executeWithRetry, handleSupabaseError } from '../lib/supabaseHelpers';
 import { Tag, Plus, Edit2, Trash2, Check, X, Package, Image as ImageIcon } from 'lucide-react';
 
 const OffersManagement = () => {
     const [offers, setOffers] = useState([]);
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [loadError, setLoadError] = useState(null);
     const [showForm, setShowForm] = useState(false);
     const [editingOffer, setEditingOffer] = useState(null);
     const [formData, setFormData] = useState({
@@ -19,40 +21,69 @@ const OffersManagement = () => {
     const [uploadingImage, setUploadingImage] = useState(false);
 
     useEffect(() => {
-        fetchOffers();
-        fetchProducts();
+        let isMounted = true;
+
+        const fetchData = async () => {
+            console.log('[fetchData] Iniciando...');
+
+            if (isMounted) {
+                setLoading(true);
+                setLoadError(null);
+            }
+
+            try {
+                console.log('[fetchData] Obteniendo ofertas...');
+                const offersResult = await executeWithRetry(
+                    () => supabase
+                        .from('offers')
+                        .select('*')
+                        .order('created_at', { ascending: false }),
+                    {
+                        maxRetries: 2,
+                        timeout: 5000
+                    }
+                );
+
+                console.log('[fetchData] Ofertas obtenidas:', offersResult.data?.length || 0);
+
+                console.log('[fetchData] Obteniendo productos...');
+                const productsResult = await executeWithRetry(
+                    () => supabase
+                        .from('products')
+                        .select('*')
+                        .order('name'),
+                    {
+                        maxRetries: 2,
+                        timeout: 5000
+                    }
+                );
+
+                console.log('[fetchData] Productos obtenidos:', productsResult.data?.length || 0);
+
+                if (isMounted) {
+                    setOffers(offersResult.data || []);
+                    setProducts(productsResult.data || []);
+                }
+            } catch (err) {
+                console.error('[fetchData] Error:', err);
+                const errorMessage = handleSupabaseError(err);
+                if (isMounted) {
+                    setLoadError(errorMessage);
+                    setOffers([]);
+                    setProducts([]);
+                }
+            } finally {
+                console.log('[fetchData] Finalizando, setLoading(false)');
+                if (isMounted) setLoading(false);
+            }
+        };
+
+        fetchData();
+
+        return () => {
+            isMounted = false;
+        };
     }, []);
-
-    const fetchOffers = async () => {
-        try {
-            const { data, error } = await supabase
-                .from('offers')
-                .select('*')
-                .order('created_at', { ascending: false });
-
-            if (error) throw error;
-            setOffers(data || []);
-        } catch (err) {
-            console.error('Error fetching offers:', err);
-            setError('Error al cargar ofertas');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const fetchProducts = async () => {
-        try {
-            const { data, error } = await supabase
-                .from('products')
-                .select('*')
-                .order('name');
-
-            if (error) throw error;
-            setProducts(data || []);
-        } catch (err) {
-            console.error('Error fetching products:', err);
-        }
-    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -470,6 +501,34 @@ const OffersManagement = () => {
             {loading ? (
                 <div className="loading-text" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-dim)' }}>
                     Cargando ofertas...
+                </div>
+            ) : loadError ? (
+                <div style={{
+                    background: 'rgba(255, 77, 77, 0.1)',
+                    backdropFilter: 'blur(var(--blur-std))',
+                    border: '1px solid rgba(255, 77, 77, 0.3)',
+                    borderRadius: 'var(--radius-lg)',
+                    padding: '2rem',
+                    textAlign: 'center'
+                }}>
+                    <Tag size={48} style={{ margin: '0 auto 1rem', opacity: 0.7, color: '#ff4d4d' }} />
+                    <h3 style={{ color: '#ff4d4d', marginBottom: '0.5rem' }}>Error al cargar datos</h3>
+                    <p style={{ color: 'var(--text-dim)', marginBottom: '1.5rem' }}>{loadError}</p>
+                    <button
+                        onClick={() => window.location.reload()}
+                        style={{
+                            marginTop: '1rem',
+                            padding: '0.5rem 1rem',
+                            background: 'var(--neon-cyan)',
+                            color: 'var(--bg-dark)',
+                            border: 'none',
+                            borderRadius: 'var(--radius-md)',
+                            cursor: 'pointer',
+                            fontWeight: '600'
+                        }}
+                    >
+                        Reintentar
+                    </button>
                 </div>
             ) : offers.length === 0 ? (
                 <div className="no-movements" style={{
