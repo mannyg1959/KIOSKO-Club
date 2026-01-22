@@ -155,6 +155,13 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    const refreshProfile = async () => {
+        if (user) {
+            console.log('Refreshing profile for user:', user.id);
+            await fetchProfile(user.id);
+        }
+    };
+
     const value = {
         user,
         profile,
@@ -163,7 +170,8 @@ export const AuthProvider = ({ children }) => {
         signUp,
         logout,
         isAdmin: profile?.role === 'admin',
-        isClient: profile?.role === 'client'
+        isClient: profile?.role === 'client',
+        refreshProfile
     };
 
     return (

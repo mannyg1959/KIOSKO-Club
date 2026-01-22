@@ -16,7 +16,7 @@ const AdminDashboard = () => {
     const [loading, setLoading] = useState(true);
 
     // Config State
-    const [config, setConfig] = useState({ points_ratio: '1', kiosk_name: 'KioskoApp' });
+    const [config, setConfig] = useState({ points_ratio: '1', kiosk_name: 'K-Point' });
     const [prizes, setPrizes] = useState([]);
     const [products, setProducts] = useState([]);
     const [saving, setSaving] = useState(false);

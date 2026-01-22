@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { Gift, Package, ChevronLeft, ChevronRight, Eye, RefreshCw } from 'lucide-react';
+import { Gift, Package, ChevronLeft, ChevronRight, Eye, RefreshCw, History, X, Award, Calendar } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { executeWithRetry, handleSupabaseError } from '../lib/supabaseHelpers';
@@ -20,6 +20,9 @@ const Home = () => {
     const [offersError, setOffersError] = useState(null);
     const [itemsPerPage, setItemsPerPage] = useState(4);
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const [redemptions, setRedemptions] = useState([]);
+    const [showRedemptionsModal, setShowRedemptionsModal] = useState(false);
+    const [loadingRedemptions, setLoadingRedemptions] = useState(false);
 
     // Responsive items per page
     useEffect(() => {
@@ -238,6 +241,26 @@ const Home = () => {
     useEffect(() => {
         fetchOffers();
     }, [fetchOffers]);
+
+    const fetchRedemptions = useCallback(async () => {
+        if (!profile?.client?.id) return;
+        setLoadingRedemptions(true);
+        try {
+            const result = await executeWithRetry(
+                () => supabase
+                    .from('redemptions')
+                    .select('*')
+                    .eq('client_id', profile.client.id)
+                    .order('created_at', { ascending: false }),
+                { maxRetries: 2, timeout: 30000 }
+            );
+            setRedemptions(result.data || []);
+        } catch (error) {
+            console.error('Error fetching redemptions:', error);
+        } finally {
+            setLoadingRedemptions(false);
+        }
+    }, [profile]);
 
     const handleNextSlide = () => {
         setCurrentSlide((prev) => (prev >= offers.length - 1 ? 0 : prev + 1));
@@ -552,16 +575,144 @@ const Home = () => {
             </div>
 
             {/* Botones de Acción */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Link to="/loyalty" className="btn btn-primary" style={{ padding: '1.5rem', fontSize: '1.1rem' }}>
-                    <Gift size={24} />
+            <div className={`grid grid-cols-1 ${profile?.role === 'client' ? 'lg:grid-cols-3' : 'md:grid-cols-2'} gap-4`}>
+                <Link to="/loyalty" className="btn btn-primary" style={{ padding: '1.5rem', fontSize: '1rem' }}>
+                    <Gift size={20} />
                     Ver Catálogo de Premios
                 </Link>
-                <Link to="/catalog" className="btn btn-secondary" style={{ padding: '1.5rem', fontSize: '1.1rem' }}>
-                    <Package size={24} />
+
+                {profile?.role === 'client' && (
+                    <button
+                        onClick={() => {
+                            setShowRedemptionsModal(true);
+                            fetchRedemptions();
+                        }}
+                        className="btn btn-secondary"
+                        style={{
+                            padding: '1.5rem',
+                            fontSize: '1rem',
+                            background: 'white',
+                            border: '1px solid var(--primary)',
+                            color: 'var(--primary)'
+                        }}
+                    >
+                        <History size={20} />
+                        Mis Canjes Realizados
+                    </button>
+                )}
+
+                <Link to="/catalog" className="btn btn-secondary" style={{ padding: '1.5rem', fontSize: '1rem' }}>
+                    <Package size={20} />
                     Explorar Productos
                 </Link>
             </div>
+
+            {/* Redemptions Modal */}
+            {showRedemptionsModal && (
+                <div style={{
+                    position: 'fixed',
+                    inset: 0,
+                    zIndex: 1000,
+                    background: 'rgba(15, 23, 42, 0.6)',
+                    backdropFilter: 'blur(8px)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '1rem'
+                }}>
+                    <div className="card" style={{
+                        width: '100%',
+                        maxWidth: '550px',
+                        maxHeight: '85vh',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        padding: 0,
+                        overflow: 'hidden',
+                        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+                        animation: 'fadeIn 0.3s ease-out'
+                    }}>
+                        {/* Header Modal */}
+                        <div style={{
+                            padding: '1.5rem',
+                            background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%)',
+                            color: 'white',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center'
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                <Award size={24} />
+                                <h3 style={{ margin: 0, color: 'white', fontSize: '1.25rem' }}>Mi Historial de Canjes</h3>
+                            </div>
+                            <button
+                                onClick={() => setShowRedemptionsModal(false)}
+                                style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', borderRadius: '50%', padding: '0.5rem', cursor: 'pointer', display: 'flex' }}
+                            >
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        {/* List Area */}
+                        <div style={{ padding: '1.5rem', overflowY: 'auto', flex: 1, background: 'var(--bg-main)' }}>
+                            {loadingRedemptions ? (
+                                <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)' }}>
+                                    <RefreshCw size={32} style={{ animation: 'spin 1s linear infinite', margin: '0 auto 1rem' }} />
+                                    <p>Cargando tus canjes...</p>
+                                </div>
+                            ) : redemptions.length === 0 ? (
+                                <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)' }}>
+                                    <Gift size={48} style={{ margin: '0 auto 1rem', opacity: 0.3 }} />
+                                    <p>Aún no has realizado ningún canje.</p>
+                                    <p style={{ fontSize: '0.85rem' }}>¡Acumula puntos y canjéalos por premios!</p>
+                                </div>
+                            ) : (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                    {redemptions.map((r) => (
+                                        <div key={r.id} style={{
+                                            background: 'white',
+                                            borderRadius: 'var(--radius-md)',
+                                            padding: '1rem',
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center',
+                                            border: '1px solid var(--border-color)',
+                                            boxShadow: 'var(--shadow-sm)'
+                                        }}>
+                                            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                                                <div style={{ background: '#EEF2FF', color: 'var(--primary)', padding: '0.75rem', borderRadius: '12px' }}>
+                                                    <Gift size={20} />
+                                                </div>
+                                                <div>
+                                                    <div style={{ fontWeight: '700', color: 'var(--text-primary)', marginBottom: '0.2rem' }}>{r.prize_description}</div>
+                                                    <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                        <Calendar size={12} />
+                                                        {formatDate(r.created_at)}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div style={{ textAlign: 'right' }}>
+                                                <div style={{ fontWeight: '800', color: 'var(--error)', fontSize: '1.1rem' }}>-{r.points_cost}</div>
+                                                <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>Puntos</div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Footer Modal */}
+                        <div style={{ padding: '1rem', borderTop: '1px solid var(--border-color)', background: 'white', textAlign: 'center' }}>
+                            <button
+                                onClick={() => setShowRedemptionsModal(false)}
+                                className="btn btn-primary"
+                                style={{ width: '100%' }}
+                            >
+                                Cerrar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

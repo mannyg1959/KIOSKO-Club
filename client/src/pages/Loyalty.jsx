@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { Search, Gift, CheckCircle, AlertCircle } from 'lucide-react';
+import { Search, Gift, CheckCircle, Ban, RefreshCw } from 'lucide-react';
 
 const Loyalty = () => {
-    const { user, profile } = useAuth();
+    const { user, profile, refreshProfile } = useAuth();
     const [phone, setPhone] = useState('');
     const [client, setClient] = useState(null);
     const [prizes, setPrizes] = useState([]);
@@ -15,7 +15,7 @@ const Loyalty = () => {
     useEffect(() => {
         if (profile?.role === 'client' && profile?.client) {
             setClient(profile.client);
-            setPhone(profile.client.phone);
+            setPhone(profile.client.phone || '');
         }
     }, [profile]);
 
@@ -39,7 +39,7 @@ const Loyalty = () => {
     };
 
     const handleSearch = async (e) => {
-        e.preventDefault();
+        if (e) e.preventDefault();
         if (!phone.trim()) return;
 
         setLoading(true);
@@ -73,30 +73,33 @@ const Loyalty = () => {
 
     const handleRedeem = async (prize) => {
         if (!client) {
-            setMessage({ type: 'error', text: 'Primero busca un cliente' });
+            setMessage({ type: 'error', text: 'Primero identifica a un cliente' });
             return;
         }
 
         if (client.points_balance < prize.points) {
-            setMessage({ type: 'error', text: 'Puntos insuficientes' });
+            setMessage({ type: 'error', text: 'Saldo insuficiente para este premio' });
             return;
         }
 
         setLoading(true);
         try {
-            // Record redemption
+            const pointsToSubtract = Number(prize.points);
+            const currentBalance = Number(client.points_balance);
+            const newBalance = currentBalance - pointsToSubtract;
+
+            // 1. Record redemption
             const { error: redemptionError } = await supabase
                 .from('redemptions')
                 .insert([{
                     client_id: client.id,
                     prize_description: prize.name,
-                    points_used: prize.points
+                    points_cost: pointsToSubtract
                 }]);
 
             if (redemptionError) throw redemptionError;
 
-            // Update client points
-            const newBalance = client.points_balance - prize.points;
+            // 2. Update client points
             const { error: updateError } = await supabase
                 .from('clients')
                 .update({ points_balance: newBalance })
@@ -104,177 +107,174 @@ const Loyalty = () => {
 
             if (updateError) throw updateError;
 
+            // Success
             setClient({ ...client, points_balance: newBalance });
-            setMessage({ type: 'success', text: `¡Premio canjeado! Nuevo saldo: ${newBalance} puntos` });
+            setMessage({ type: 'success', text: `Canje exitoso. Se han descontado ${pointsToSubtract} puntos.` });
+
+            if (refreshProfile) await refreshProfile();
         } catch (err) {
-            console.error('Error redeeming prize:', err);
-            setMessage({ type: 'error', text: 'Error al canjear premio' });
+            console.error('Redeem error:', err);
+            setMessage({ type: 'error', text: 'Error al procesar el canje' });
         } finally {
             setLoading(false);
         }
     };
 
-    const isClientUser = profile?.role === 'client' && profile?.client;
+    const isClientUser = (profile?.role === 'client' && profile?.client);
 
-    // Calcular el premio más caro para la barra de progreso
-    const maxPrizePoints = prizes.length > 0 ? Math.max(...prizes.map(p => p.points)) : 1000;
-    const progressPercentage = client ? Math.min((client.points_balance / maxPrizePoints) * 100, 100) : 0;
+    const stats = useMemo(() => {
+        if (!client || prizes.length === 0) return { nextPrize: null, progress: 0, affordableCount: 0 };
+
+        const next = prizes.find(p => p.points > client.points_balance) || prizes[prizes.length - 1];
+        const affordable = prizes.filter(p => client.points_balance >= p.points).length;
+        const progress = next.points > 0 ? Math.min((client.points_balance / next.points) * 100, 100) : 0;
+
+        return { nextPrize: next, progress, affordableCount: affordable };
+    }, [client, prizes]);
 
     return (
-        <div className="flex flex-col gap-8 max-w-5xl mx-auto w-full">
-            {/* Search Form for Admin */}
+        <div className="flex flex-col gap-6 w-full max-w-4xl mx-auto pb-10 px-4">
+
+            {/* SECCIÓN DE BÚSQUEDA (Solo Admin) */}
             {!isClientUser && (
-                <div className={`card ${client ? 'mb-0' : ''}`}>
-                    <form onSubmit={handleSearch} className="flex gap-4">
+                <div className="card">
+                    <form onSubmit={handleSearch} className="flex gap-3 items-center">
                         <div className="flex-1 relative">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                             <input
                                 type="tel"
                                 placeholder="Buscar cliente por teléfono..."
                                 value={phone}
                                 onChange={(e) => setPhone(e.target.value)}
-                                className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 outline-none transition-all"
+                                className="input-field pl-10"
                             />
                         </div>
                         <button type="submit" className="btn btn-primary" disabled={loading}>
-                            <Search size={20} />
+                            {loading ? <RefreshCw className="animate-spin" size={18} /> : <Search size={18} />}
                             Buscar
                         </button>
                     </form>
                 </div>
             )}
 
-            {/* Messages */}
+            {/* MENSAJES DE ESTADO */}
             {message.text && (
-                <div className={`p-4 rounded-lg flex items-center gap-3 ${message.type === 'success'
-                        ? 'bg-green-50 text-green-700 border border-green-200'
-                        : 'bg-red-50 text-red-700 border border-red-200'
-                    }`}>
-                    {message.type === 'success' ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
+                <div className={message.type === 'success' ? 'success-message' : 'error-message'}>
                     {message.text}
                 </div>
             )}
 
-            {/* Empty State */}
+            {/* ESTADO VACÍO */}
             {!client && !isClientUser && (
-                <div className="text-center p-12 text-gray-400 border-2 border-dashed border-gray-200 rounded-xl">
-                    <Gift size={64} className="mx-auto mb-4 opacity-50" />
-                    <p className="text-lg font-medium">Busca un cliente para ver su balance y premios</p>
+                <div className="card flex flex-col items-center justify-center py-16 text-center">
+                    <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+                        <Gift size={40} className="text-gray-300" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-700 mb-2">Busca un cliente</h3>
+                    <p className="text-gray-500 max-w-md">Ingresa el número telefónico para ver el balance de puntos y premios disponibles.</p>
                 </div>
             )}
 
             {client && (
                 <>
-                    {/* Header - Balance Section */}
-                    <div>
-                        <h2 style={{
-                            fontSize: '0.85rem',
-                            fontWeight: '600',
-                            letterSpacing: '0.05em',
-                            textTransform: 'uppercase',
-                            color: '#64748b',
-                            marginBottom: '0.25rem'
-                        }}>
-                            TU BALANCE
-                        </h2>
-                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', marginBottom: '1rem' }}>
-                            <span style={{ fontSize: '2.5rem', fontWeight: '800', color: '#1e293b' }}>
-                                {client.points_balance.toLocaleString()}
-                            </span>
-                            <span style={{ fontSize: '1.25rem', fontWeight: '600', color: '#8b5cf6' }}>
-                                puntos
-                            </span>
+                    {/* BALANCE HEADER - Mejorado visualmente */}
+                    <div className="bg-gradient-to-br from-gray-50 to-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+                        <span className="text-xs font-semibold text-gray-400 tracking-wider uppercase mb-2 block">TU BALANCE</span>
+
+                        <div className="flex items-baseline gap-3 mb-4">
+                            <h1 className="text-7xl font-black text-primary tracking-tight" style={{ lineHeight: 0.9 }}>
+                                {client.points_balance}
+                            </h1>
+                            <span className="text-2xl font-bold text-primary opacity-70">puntos</span>
                         </div>
 
-                        {/* Progress Bar */}
-                        <div style={{
-                            height: '12px',
-                            background: '#f1f5f9',
-                            borderRadius: '999px',
-                            overflow: 'hidden',
-                            maxWidth: '400px'
-                        }}>
-                            <div style={{
-                                width: `${progressPercentage}%`,
-                                height: '100%',
-                                background: '#8b5cf6',
-                                borderRadius: '999px',
-                                transition: 'width 1s ease-in-out'
-                            }} />
+                        {/* Barra de progreso mejorada */}
+                        <div className="w-full max-w-sm h-2.5 bg-gray-100 rounded-full overflow-hidden mb-4 shadow-inner">
+                            <div
+                                className="h-full bg-primary rounded-full transition-all duration-500 ease-out shadow-sm"
+                                style={{ width: `${stats.progress}%` }}
+                            ></div>
                         </div>
+
+                        <h2 className="text-base font-medium text-gray-500 mb-1">{client.name}</h2>
+
+                        {stats.nextPrize ? (
+                            <p className="text-sm font-medium text-gray-700">
+                                Siguiente Meta: <span className="font-bold text-gray-900">{stats.nextPrize.name}</span>
+                            </p>
+                        ) : (
+                            <p className="text-sm font-medium text-success">¡Has alcanzado el máximo nivel!</p>
+                        )}
                     </div>
 
-                    {/* Rewards Section */}
-                    <div>
-                        <h3 className="section-title" style={{ marginTop: '2rem', marginBottom: '1.5rem', fontWeight: '800' }}>
-                            PREMIOS DISPONIBLES
-                        </h3>
+                    {/* PREMIOS DISPONIBLES - Container mejorado */}
+                    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                        <div className="bg-gradient-to-r from-gray-50 to-white px-6 py-4 border-b border-gray-100">
+                            <h3 className="text-base font-bold text-gray-800 uppercase tracking-wide">PREMIOS DISPONIBLES</h3>
+                        </div>
 
-                        {prizes.length === 0 ? (
-                            <div className="text-center p-8 text-gray-500">No hay premios activos en este momento.</div>
-                        ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {prizes.map((prize) => {
-                                    const canRedeem = client ? client.points_balance >= prize.points : false;
-                                    return (
-                                        <div key={prize.id} style={{
-                                            border: '1px solid #e2e8f0',
-                                            borderRadius: '8px',
-                                            padding: '1.25rem',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'space-between',
-                                            background: 'white',
-                                            boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
-                                        }}>
-                                            <div className="flex items-center gap-4">
-                                                <div>
-                                                    <Gift size={24} style={{ color: '#334155' }} />
-                                                </div>
-                                                <div>
-                                                    <h4 style={{
-                                                        fontWeight: '700',
-                                                        color: '#1e293b',
-                                                        fontSize: '1.1rem',
-                                                        marginBottom: '0.1rem'
-                                                    }}>
-                                                        {prize.name}
-                                                    </h4>
-                                                    <div style={{
-                                                        fontSize: '0.9rem',
-                                                        color: '#64748b',
-                                                        borderBottom: '2px solid #ddd6fe',
-                                                        display: 'inline-block',
-                                                        lineHeight: '1.2'
-                                                    }}>
-                                                        {prize.points} puntos
-                                                    </div>
-                                                </div>
+                        <div className="p-4 space-y-3">
+                            {prizes.map((prize) => {
+                                const canRedeem = client.points_balance >= prize.points;
+                                const pointsNeeded = prize.points - client.points_balance;
+
+                                return (
+                                    <div
+                                        key={prize.id}
+                                        className="bg-white rounded-xl p-4 flex flex-col md:flex-row items-center justify-between border border-gray-100 hover:border-gray-200 hover:shadow-md transition-all duration-200 gap-4"
+                                    >
+                                        {/* LEFT: Icon & Info */}
+                                        <div className="flex items-center gap-4 w-full md:w-2/5">
+                                            <div className="w-14 h-14 rounded-xl bg-gray-50 flex items-center justify-center text-gray-600 shrink-0 border border-gray-100">
+                                                <Gift size={28} strokeWidth={1.8} />
                                             </div>
-
-                                            <button
-                                                onClick={() => handleRedeem(prize)}
-                                                disabled={!canRedeem || loading}
-                                                style={{
-                                                    background: canRedeem ? '#6366f1' : '#e2e8f0',
-                                                    color: canRedeem ? 'white' : '#94a3b8',
-                                                    padding: '0.5rem 1.25rem',
-                                                    borderRadius: '8px',
-                                                    fontWeight: '600',
-                                                    fontSize: '0.95rem',
-                                                    border: 'none',
-                                                    cursor: canRedeem ? 'pointer' : 'not-allowed',
-                                                    transition: 'all 0.2s',
-                                                    boxShadow: canRedeem ? '0 4px 6px -1px rgba(99, 102, 241, 0.3)' : 'none'
-                                                }}
-                                            >
-                                                Canjear
-                                            </button>
+                                            <div className="flex-1">
+                                                <h4 className="font-bold text-gray-900 text-base leading-tight mb-0.5">{prize.name}</h4>
+                                                <p className="text-gray-400 text-sm font-medium">{prize.points} puntos</p>
+                                            </div>
                                         </div>
-                                    );
-                                })}
-                            </div>
-                        )}
+
+                                        {/* CENTER: Message */}
+                                        <div className="text-center w-full md:w-1/3">
+                                            {canRedeem ? (
+                                                <span className="text-primary font-semibold text-sm">¡Solicítalo en caja!</span>
+                                            ) : (
+                                                <span className="text-gray-500 font-medium text-sm">Te faltan {pointsNeeded} pts</span>
+                                            )}
+                                        </div>
+
+                                        {/* RIGHT: Status & Icon */}
+                                        <div className="flex items-center justify-end gap-3 w-full md:w-1/4">
+                                            <span className={`font-bold text-sm ${canRedeem ? 'text-gray-900' : 'text-gray-600'}`}>
+                                                {canRedeem ? 'Canjeable' : 'Bloqueado'}
+                                            </span>
+
+                                            {canRedeem ? (
+                                                <div className="w-9 h-9 rounded-full bg-success bg-opacity-10 flex items-center justify-center shrink-0">
+                                                    <CheckCircle className="text-success" size={22} strokeWidth={2.5} />
+                                                </div>
+                                            ) : (
+                                                <div className="shrink-0">
+                                                    <Ban className="text-error" size={36} strokeWidth={2} />
+                                                </div>
+                                            )}
+
+                                            {/* ADMIN ACTION BUTTON */}
+                                            {profile?.role === 'admin' && canRedeem && (
+                                                <button
+                                                    onClick={() => handleRedeem(prize)}
+                                                    className="btn btn-primary text-xs px-3 py-1.5 ml-2"
+                                                    disabled={loading}
+                                                    style={{ height: 'auto', minHeight: '32px' }}
+                                                >
+                                                    CANJEAR
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
                     </div>
                 </>
             )}

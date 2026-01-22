@@ -81,7 +81,7 @@ const CompleteProfile = () => {
                     <div className="auth-logo">
                         <Sparkles size={32} strokeWidth={2.5} />
                     </div>
-                    <h1 className="auth-title">Kiosko Club</h1>
+                    <h1 className="auth-title">K-Point</h1>
                     <p className="auth-subtitle">
                         ¡Casi listo! Completa tu perfil para continuar
                     </p>

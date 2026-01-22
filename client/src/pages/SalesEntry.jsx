@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { executeWithRetry, handleSupabaseError } from '../lib/supabaseHelpers';
 import { ShoppingCart, Search, CheckCircle, Plus, Minus, Trash2, QrCode, X, Package, ChevronLeft } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 import QrScanner from '../components/QrScanner';
 
 const SalesEntry = () => {
+    const { refreshProfile } = useAuth();
     // Client State
     const [phone, setPhone] = useState('');
     const [client, setClient] = useState(null);

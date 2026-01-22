@@ -48,7 +48,7 @@ const Layout = ({ children }) => {
                 <button onClick={toggleSidebar} className="menu-toggle-btn">
                     <Menu size={24} />
                 </button>
-                <span className="mobile-brand">KIOSKO Club</span>
+                <span className="mobile-brand">K-Point</span>
             </div>
 
             {/* Sidebar */}
@@ -59,7 +59,7 @@ const Layout = ({ children }) => {
                         <Package size={24} color="white" />
                     </div>
                     <div>
-                        <h1 style={{ fontSize: '1.2rem', fontWeight: '700', color: 'var(--text-primary)' }}>KioskoApp</h1>
+                        <h1 style={{ fontSize: '1.2rem', fontWeight: '700', color: 'var(--text-primary)' }}>K-Point</h1>
                         <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Sistema de Gestión</p>
                     </div>
                 </div>

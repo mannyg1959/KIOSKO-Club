@@ -61,7 +61,7 @@ const Login = () => {
                 </div>
 
                 <div className="auth-header" style={{ marginTop: 0 }}>
-                    <h1 className="auth-title">Kiosko Club</h1>
+                    <h1 className="auth-title" style={{ fontSize: '1.2rem', color: 'var(--primary)' }}>El monedero digital de tu Kiosko favorito</h1>
                     <p className="auth-subtitle">
                         {isSignUp ? 'Crea una cuenta para empezar' : 'Bienvenido de nuevo'}
                     </p>
