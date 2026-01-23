@@ -12,8 +12,8 @@ if (!supabaseUrl || !supabaseKey) {
 // Configure Supabase with standard persistence and auto-refresh to prevent connection hangs
 export const supabase = createClient(supabaseUrl, supabaseKey, {
     auth: {
-        persistSession: true, // Restore persistence to prevent loss of state
-        autoRefreshToken: true, // CRITICAL: This fixes the "hanging after a few seconds" issue by keeping the token alive
+        persistSession: false, // Forces Login screen on every refresh/new tab
+        autoRefreshToken: true, // Keeps session alive while browser tab is open
         detectSessionInUrl: true
     }
 })

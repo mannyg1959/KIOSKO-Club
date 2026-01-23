@@ -30,8 +30,8 @@ function App() {
 
         <Route path="/*" element={
           user ? (
-            // If user doesn't have client_id, redirect to complete profile
-            !profile?.client_id ? (
+            // Only redirect to complete-profile if NOT an admin and missing client_id
+            (!profile?.client_id && profile?.role !== 'admin') ? (
               <Navigate to="/complete-profile" />
             ) : (
               <Layout>
