@@ -153,6 +153,15 @@ const CompleteProfile = () => {
                     <p className="text-center text-xs text-gray-400 mt-4">
                         Todos los campos marcados son obligatorios para uso interno
                     </p>
+                    <div className="mt-6 text-center">
+                        <button
+                            type="button"
+                            onClick={useAuth().logout}
+                            className="text-sm text-gray-500 hover:text-primary transition-colors underline"
+                        >
+                            ¿No eres tú? Cerrar Sesión
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>
