@@ -9,11 +9,11 @@ if (!supabaseUrl || !supabaseKey) {
     console.error('Missing Supabase configuration!');
 }
 
-// Configure Supabase to NOT persist sessions - force login every time
+// Configure Supabase with standard persistence and auto-refresh to prevent connection hangs
 export const supabase = createClient(supabaseUrl, supabaseKey, {
     auth: {
-        persistSession: false, // This forces users to login every time
-        autoRefreshToken: false,
-        detectSessionInUrl: false
+        persistSession: true, // Restore persistence to prevent loss of state
+        autoRefreshToken: true, // CRITICAL: This fixes the "hanging after a few seconds" issue by keeping the token alive
+        detectSessionInUrl: true
     }
 })

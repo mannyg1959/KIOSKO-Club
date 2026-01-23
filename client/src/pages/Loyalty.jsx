@@ -177,85 +177,83 @@ const Loyalty = () => {
 
             {client && (
                 <>
-                    {/* BALANCE HEADER - Mejorado visualmente */}
-                    <div className="bg-gradient-to-br from-gray-50 to-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-                        <span className="text-xs font-semibold text-gray-400 tracking-wider uppercase mb-2 block">TU BALANCE</span>
+                    {/* BALANCE HEADER - Updated with Custom CSS */}
+                    <div className="loyalty-balance-card">
+                        <span className="loyalty-balance-label">TU BALANCE</span>
 
-                        <div className="flex items-baseline gap-3 mb-4">
-                            <h1 className="text-7xl font-black text-primary tracking-tight" style={{ lineHeight: 0.9 }}>
+                        <div className="flex items-baseline mb-4">
+                            <h1 className="loyalty-big-number">
                                 {client.points_balance}
                             </h1>
-                            <span className="text-2xl font-bold text-primary opacity-70">puntos</span>
+                            <span className="loyalty-unit">puntos</span>
                         </div>
 
-                        {/* Barra de progreso mejorada */}
+                        {/* Progress Bar - keeping inline style for width but using css for container */}
                         <div className="w-full max-w-sm h-2.5 bg-gray-100 rounded-full overflow-hidden mb-4 shadow-inner">
                             <div
                                 className="h-full bg-primary rounded-full transition-all duration-500 ease-out shadow-sm"
-                                style={{ width: `${stats.progress}%` }}
+                                style={{ width: `${stats.progress}%`, backgroundColor: 'var(--primary)' }}
                             ></div>
                         </div>
 
-                        <h2 className="text-base font-medium text-gray-500 mb-1">{client.name}</h2>
+                        <h2 className="text-base font-medium text-slate-500 mb-1">{client.name}</h2>
 
                         {stats.nextPrize ? (
-                            <p className="text-sm font-medium text-gray-700">
-                                Siguiente Meta: <span className="font-bold text-gray-900">{stats.nextPrize.name}</span>
+                            <p className="text-sm font-medium text-slate-700">
+                                Siguiente Meta: <span className="font-bold text-slate-900">{stats.nextPrize.name}</span>
                             </p>
                         ) : (
                             <p className="text-sm font-medium text-success">¡Has alcanzado el máximo nivel!</p>
                         )}
                     </div>
 
-                    {/* PREMIOS DISPONIBLES - Container mejorado */}
-                    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-                        <div className="bg-gradient-to-r from-gray-50 to-white px-6 py-4 border-b border-gray-100">
-                            <h3 className="text-base font-bold text-gray-800 uppercase tracking-wide">PREMIOS DISPONIBLES</h3>
+                    {/* PREMIOS DISPONIBLES - Updated with Custom CSS */}
+                    <div className="loyalty-prizes-container">
+                        <div className="loyalty-prizes-header">
+                            <h3 className="loyalty-prizes-title">PREMIOS DISPONIBLES</h3>
                         </div>
 
-                        <div className="p-4 space-y-3">
+                        <div className="loyalty-list">
                             {prizes.map((prize) => {
                                 const canRedeem = client.points_balance >= prize.points;
                                 const pointsNeeded = prize.points - client.points_balance;
 
                                 return (
-                                    <div
-                                        key={prize.id}
-                                        className="bg-white rounded-xl p-4 flex flex-col md:flex-row items-center justify-between border border-gray-100 hover:border-gray-200 hover:shadow-md transition-all duration-200 gap-4"
-                                    >
-                                        {/* LEFT: Icon & Info */}
-                                        <div className="flex items-center gap-4 w-full md:w-2/5">
-                                            <div className="w-14 h-14 rounded-xl bg-gray-50 flex items-center justify-center text-gray-600 shrink-0 border border-gray-100">
+                                    <div key={prize.id} className="loyalty-item">
+
+                                        {/* LEFT: INFO */}
+                                        <div className="loyalty-item-info">
+                                            <div className="loyalty-icon-box">
                                                 <Gift size={28} strokeWidth={1.8} />
                                             </div>
-                                            <div className="flex-1">
-                                                <h4 className="font-bold text-gray-900 text-base leading-tight mb-0.5">{prize.name}</h4>
-                                                <p className="text-gray-400 text-sm font-medium">{prize.points} puntos</p>
+                                            <div>
+                                                <h4 className="font-bold text-slate-900 text-base leading-tight mb-0.5">{prize.name}</h4>
+                                                <p className="text-slate-500 text-sm font-medium">{prize.points} puntos</p>
                                             </div>
                                         </div>
 
-                                        {/* CENTER: Message */}
-                                        <div className="text-center w-full md:w-1/3">
+                                        {/* CENTER: STATUS TEXT */}
+                                        <div className="loyalty-item-status">
                                             {canRedeem ? (
-                                                <span className="text-primary font-semibold text-sm">¡Solicítalo en caja!</span>
+                                                <span className="text-slate-900 font-medium text-sm">¡Solicítalo en caja!</span>
                                             ) : (
-                                                <span className="text-gray-500 font-medium text-sm">Te faltan {pointsNeeded} pts</span>
+                                                <span className="text-slate-900 font-medium text-sm">Te faltan {pointsNeeded} pts</span>
                                             )}
                                         </div>
 
-                                        {/* RIGHT: Status & Icon */}
-                                        <div className="flex items-center justify-end gap-3 w-full md:w-1/4">
-                                            <span className={`font-bold text-sm ${canRedeem ? 'text-gray-900' : 'text-gray-600'}`}>
+                                        {/* RIGHT: ACTION */}
+                                        <div className="loyalty-item-action">
+                                            <span className={`font-bold text-sm text-slate-900`}>
                                                 {canRedeem ? 'Canjeable' : 'Bloqueado'}
                                             </span>
 
                                             {canRedeem ? (
-                                                <div className="w-9 h-9 rounded-full bg-success bg-opacity-10 flex items-center justify-center shrink-0">
-                                                    <CheckCircle className="text-success" size={22} strokeWidth={2.5} />
+                                                <div className="shrink-0">
+                                                    <CheckCircle className="text-success" size={32} strokeWidth={2.5} />
                                                 </div>
                                             ) : (
                                                 <div className="shrink-0">
-                                                    <Ban className="text-error" size={36} strokeWidth={2} />
+                                                    <Ban className="text-error" size={32} strokeWidth={2.5} />
                                                 </div>
                                             )}
 

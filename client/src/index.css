@@ -801,3 +801,134 @@ tr:hover td {
         transform: rotate(360deg);
     }
 }
+
+/* === LOYALTY PAGE SPECIFIC === */
+.loyalty-balance-card {
+    background: linear-gradient(135deg, #F8FAFC 0%, #FFFFFF 100%);
+    border-radius: 16px;
+    padding: 24px;
+    border: 1px solid #F1F5F9;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 24px;
+}
+
+.loyalty-balance-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #94A3B8;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.loyalty-big-number {
+    font-size: 3.5rem; /* Ajuste para desktop standard */
+    font-weight: 900;
+    color: #0F172A; /* Slate 900 */
+    line-height: 1;
+    letter-spacing: -0.05em;
+}
+
+.loyalty-unit {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin-left: 8px;
+    opacity: 1;
+}
+
+.loyalty-prizes-container {
+    background: white;
+    border-radius: 16px;
+    border: 1.5px solid #1e293b; /* Dark Slate Border - Visually prominent */
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    margin-top: 24px;
+}
+
+.loyalty-prizes-header {
+    background: white;
+    padding: 20px 24px;
+    border-bottom: 1px solid #F1F5F9;
+    text-align: center;
+}
+
+.loyalty-prizes-title {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #1E293B;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    margin: 0;
+}
+
+.loyalty-list {
+    padding: 16px;
+}
+
+.loyalty-item {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    border: 1px solid #F1F5F9;
+    transition: all 0.2s ease;
+    margin-bottom: 12px;
+}
+
+.loyalty-item:last-child {
+    margin-bottom: 0;
+}
+
+.loyalty-item:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+@media (min-width: 768px) {
+    .loyalty-item {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .loyalty-item-info {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        width: 40%;
+    }
+    
+    .loyalty-item-status {
+        width: 30%;
+        text-align: center;
+    }
+    
+    .loyalty-item-action {
+        width: 25%;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 12px;
+    }
+}
+
+.loyalty-icon-box {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    background-color: #F8FAFC;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #475569;
+    border: 1px solid #F1F5F9;
+    flex-shrink: 0;
+}
+
+.text-slate-900 { color: #0F172A; }
+.text-slate-700 { color: #334155; }
+.text-slate-500 { color: #64748B; }

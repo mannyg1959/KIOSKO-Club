@@ -139,16 +139,18 @@ export const AuthProvider = ({ children }) => {
     };
 
     const logout = async () => {
+        console.log("Logging out...");
         try {
-            console.log("Logging out...");
-            const { error } = await supabase.auth.signOut();
-            if (error) throw error;
-            setUser(null);
-            setProfile(null);
-            window.location.href = '/login';
+            // Attempt server-side sign out, but don't block indefinitely
+            // We use a small timeout to ensure the UI remains responsive
+            const signOutPromise = supabase.auth.signOut();
+            const timeoutPromise = new Promise(resolve => setTimeout(resolve, 500));
+
+            await Promise.race([signOutPromise, timeoutPromise]);
         } catch (err) {
-            console.error("Error during logout:", err);
-            // Even if there's an error, clear local state
+            console.error("Error during logout (non-blocking):", err);
+        } finally {
+            // ALWAYS clear local state and redirect, no matter what happened above
             setUser(null);
             setProfile(null);
             window.location.href = '/login';
